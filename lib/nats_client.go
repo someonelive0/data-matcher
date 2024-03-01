@@ -26,14 +26,14 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 
 	nc, err := nats.Connect(
 		servers,
-		nats.Name("natscli of mime 0.1.0"),
+		nats.Name("matcher of mime 0.1.0"),
 		nats.UserInfo(user, password),
 		nats.Timeout(10*time.Second),
-		nats.PingInterval(1*time.Second),
+		nats.PingInterval(20*time.Second),
 		nats.MaxPingsOutstanding(5),
-		nats.NoEcho(),
+		// nats.NoEcho(),
 		nats.ReconnectWait(10*time.Second),
-		nats.ReconnectBufSize(500*1024*1024),
+		nats.ReconnectBufSize(50*1024*1024),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
 			// handle disconnect error event
 			log.Printf("DisconnectErrHandler client disconnected: %v\n", err)
