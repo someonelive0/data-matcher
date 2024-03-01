@@ -29,11 +29,11 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 		nats.Name("natscli of mime 0.1.0"),
 		nats.UserInfo(user, password),
 		nats.Timeout(10*time.Second),
-		nats.PingInterval(20*time.Second),
+		nats.PingInterval(1*time.Second),
 		nats.MaxPingsOutstanding(5),
 		nats.NoEcho(),
 		nats.ReconnectWait(10*time.Second),
-		nats.ReconnectBufSize(5*1024*1024),
+		nats.ReconnectBufSize(500*1024*1024),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
 			// handle disconnect error event
 			log.Printf("DisconnectErrHandler client disconnected: %v\n", err)
@@ -52,12 +52,38 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 		}),
 		nats.ErrorHandler(func(_ *nats.Conn, _ *nats.Subscription, err error) {
 			log.Printf("ErrorHandler Error: %v", err)
-		}), // logSlowConsumer
+			if err == nats.ErrSlowConsumer { // logSlowConsumer
+				// pendingMsgs, _, err := sub.Pending()
+				// if err != nil {
+				// 	fmt.Printf("couldn't get pending messages: %v", err)
+				// 	return
+				// }
+				// fmt.Printf("Falling behind with %d pending messages on subject %q.\n",
+				// 	pendingMsgs, sub.Subject)
+				// // Log error, notify operations...
+			}
+		}),
 	)
 	if err != nil {
 		log.Fatal("Connect failed: ", err)
 		return nil, err
 	}
+
+	// Do something with the connection
+	mp := nc.MaxPayload()
+	log.Printf("nats maximum payload is %v bytes", mp)
+
+	getStatusTxt := func(nc *nats.Conn) string {
+		switch nc.Status() {
+		case nats.CONNECTED:
+			return "Connected"
+		case nats.CLOSED:
+			return "Closed"
+		default:
+			return "Other"
+		}
+	}
+	log.Printf("nats connection is %v\n", getStatusTxt(nc))
 
 	return nc, nil
 }
@@ -73,4 +99,12 @@ func QueueSub2Chan(nc *nats.Conn, subject, queue_name string, ch chan *nats.Msg)
 		return nil, err
 	}
 	return sub, nil
+}
+
+func SendMsg(nc *nats.Conn, subject, msg string) error {
+	if err := nc.Publish(subject, []byte(msg)); err != nil {
+		return err
+	}
+
+	return nil
 }

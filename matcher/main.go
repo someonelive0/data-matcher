@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"sync"
 
-	mylib "data-matcher/lib"
-
 	"github.com/nats-io/nats.go"
+
+	mylib "data-matcher/lib"
 )
 
 var arg_server = flag.String("server", "nats://localhost:4222", "nats server hostname or ip")
@@ -30,7 +30,7 @@ func main() {
 	defer nc.Close()
 	log.Printf("connect %s success by user %s\n", *arg_server, *arg_user)
 
-	msgch := make(chan *nats.Msg)
+	msgch := make(chan *nats.Msg, 1000000)
 	sub, err := mylib.QueueSub2Chan(nc, *arg_subject, *arg_queue, msgch)
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +40,7 @@ func main() {
 	log.Printf("sub %s success with queue %s\n", *arg_subject, *arg_queue)
 
 	var wg sync.WaitGroup
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 8; i++ {
 		wg.Add(1)
 		go func(name string) {
 			defer wg.Done()
