@@ -16,6 +16,8 @@ var arg_user = flag.String("user", "", "nats user")
 var arg_password = flag.String("password", "", "")
 var arg_subject = flag.String("subject", "foo", "subject of nats to receive message")
 var arg_queue = flag.String("queue", "foo", "queue name for the subject")
+var arg_chan_size = flag.Int("chan-size", 1000000, "channel size to cache message")
+var arg_routines = flag.Int("routines", 8, "routines to process message")
 
 func init() {
 	flag.Parse()
@@ -30,7 +32,7 @@ func main() {
 	defer nc.Close()
 	log.Printf("connect %s success by user %s\n", *arg_server, *arg_user)
 
-	msgch := make(chan *nats.Msg, 1000000)
+	msgch := make(chan *nats.Msg, *arg_chan_size)
 	sub, err := mylib.QueueSub2Chan(nc, *arg_subject, *arg_queue, msgch)
 	if err != nil {
 		log.Fatal(err)
@@ -40,7 +42,7 @@ func main() {
 	log.Printf("sub %s success with queue %s\n", *arg_subject, *arg_queue)
 
 	var wg sync.WaitGroup
-	for i := 0; i < 8; i++ {
+	for i := 0; i < *arg_routines; i++ {
 		wg.Add(1)
 		go func(name string) {
 			defer wg.Done()
