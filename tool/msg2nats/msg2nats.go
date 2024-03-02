@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	mylib "data-matcher/lib"
+	"data-matcher/utils"
 )
 
 var arg_server = flag.String("server", "nats://localhost:4222", "nats server hostname or ip")
@@ -20,7 +20,7 @@ func init() {
 }
 
 func main() {
-	nc, err := mylib.NatsConnect(*arg_server, *arg_user, *arg_password)
+	nc, err := utils.NatsConnect(*arg_server, *arg_user, *arg_password)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -31,7 +31,7 @@ func main() {
 	log.Printf("send %d messages with length %d\n", *arg_num, len(msg))
 	t0 := time.Now()
 	for i := 0; i < *arg_num; i++ {
-		if err = mylib.SendMsg(nc, *arg_subject, msg); err != nil {
+		if err = utils.SendMsg(nc, *arg_subject, msg); err != nil {
 			log.Println("sendmsg failed: ", err)
 		}
 		// print("----> %v\n", i)
