@@ -5,10 +5,13 @@ go 1.21.6
 require (
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gorilla/mux v1.8.1
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/nats-io/nats.go v1.33.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/wasilibs/go-re2 v1.4.1
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (

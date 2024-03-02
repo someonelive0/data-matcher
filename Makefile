@@ -14,7 +14,7 @@ PRGS=data-matcher
 all:	$(PRGS)
 
 data-matcher:
-	$(GO) build $(PARAMS) -o $@ ./matcher
+	$(GO) build $(PARAMS) -o $@ ./bin/data-matcher
 
 clean:
 	rm -f $(PRGS)

@@ -1,10 +1,10 @@
 package utils
 
 import (
-	"log"
 	"time"
 
 	"github.com/nats-io/nats.go"
+	log "github.com/sirupsen/logrus"
 )
 
 // func opts() {
@@ -36,42 +36,42 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 		nats.ReconnectBufSize(50*1024*1024),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
 			// handle disconnect error event
-			log.Printf("DisconnectErrHandler client disconnected: %v\n", err)
+			log.Errorf("DisconnectErrHandler client disconnected: %v\n", err)
 		}),
 		nats.ReconnectHandler(func(nc *nats.Conn) {
 			// handle reconnect event
-			log.Println("ReconnectHandler client reconnected")
+			log.Infof("ReconnectHandler client reconnected")
 		}),
 		nats.ClosedHandler(func(_ *nats.Conn) {
-			log.Printf("ClosedHandler client closed")
+			log.Warnf("ClosedHandler client closed")
 		}),
 		nats.DiscoveredServersHandler(func(nc *nats.Conn) {
-			log.Printf("DiscoveredServersHandler client discover")
-			log.Printf("Known servers: %v\n", nc.Servers())
-			log.Printf("Discovered servers: %v\n", nc.DiscoveredServers())
+			log.Warnf("DiscoveredServersHandler client discover")
+			log.Infof("Known servers: %v\n", nc.Servers())
+			log.Infof("Discovered servers: %v\n", nc.DiscoveredServers())
 		}),
 		nats.ErrorHandler(func(_ *nats.Conn, _ *nats.Subscription, err error) {
-			log.Printf("ErrorHandler Error: %v", err)
-			if err == nats.ErrSlowConsumer { // logSlowConsumer
-				// pendingMsgs, _, err := sub.Pending()
-				// if err != nil {
-				// 	fmt.Printf("couldn't get pending messages: %v", err)
-				// 	return
-				// }
-				// fmt.Printf("Falling behind with %d pending messages on subject %q.\n",
-				// 	pendingMsgs, sub.Subject)
-				// // Log error, notify operations...
-			}
+			log.Errorf("ErrorHandler Error: %v", err)
+			// if err == nats.ErrSlowConsumer { // logSlowConsumer
+			// pendingMsgs, _, err := sub.Pending()
+			// if err != nil {
+			// 	fmt.Printf("couldn't get pending messages: %v", err)
+			// 	return
+			// }
+			// fmt.Printf("Falling behind with %d pending messages on subject %q.\n",
+			// 	pendingMsgs, sub.Subject)
+			// // Log error, notify operations...
+			// }
 		}),
 	)
 	if err != nil {
-		log.Fatal("Connect failed: ", err)
+		// log.Errorf("NatsConnect failed: %s", err)
 		return nil, err
 	}
 
 	// Do something with the connection
 	mp := nc.MaxPayload()
-	log.Printf("nats maximum payload is %v bytes", mp)
+	log.Debugf("nats maximum payload is %v bytes", mp)
 
 	getStatusTxt := func(nc *nats.Conn) string {
 		switch nc.Status() {
@@ -83,7 +83,7 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 			return "Other"
 		}
 	}
-	log.Printf("nats connection is %v\n", getStatusTxt(nc))
+	log.Debugf("nats connection is %v\n", getStatusTxt(nc))
 
 	return nc, nil
 }

@@ -4,8 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
 	"strconv"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/nats-io/nats.go"
@@ -45,23 +47,25 @@ func init() {
 }
 
 func main() {
-	nc, err := utils.NatsConnect(*arg_server, *arg_user, *arg_password)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	defer nc.Close()
-	log.Printf("connect %s success by user %s\n", *arg_server, *arg_user)
+	var myerrors = utils.AddLogHook()
 
+	// load config
+	// var myconfig, err = matcher.LoadConfig(*param_config)
+	// if err != nil {
+	// 	log.Errorf("loadConfig error %s", err)
+	// 	os.Exit(1)
+	// }
+	// log.Infof("MyConfig: %s", myconfig.Dump())
+
+	runok := true // Exit when run is not ok
 	msgch := make(chan *nats.Msg, *arg_chan_size)
-	sub, err := utils.QueueSub2Chan(nc, *arg_subject, *arg_queue, msgch)
+	var inputer = matcher.Inputer{}
+	err := inputer.Run(msgch, *arg_server, *arg_user, *arg_password, *arg_subject, *arg_queue)
 	if err != nil {
-		log.Fatal(err)
 		return
 	}
-	defer sub.Unsubscribe()
-	log.Printf("sub %s success with queue %s\n", *arg_subject, *arg_queue)
 
+	// run workers
 	var wg sync.WaitGroup
 	for i := 0; i < *arg_routines; i++ {
 		wg.Add(1)
@@ -72,4 +76,62 @@ func main() {
 	}
 
 	wg.Wait()
+
+	// run api interface
+	var myapi = matcher.MatcherApi{
+		RestapiHandler: utils.RestapiHandler{Name: "data-matcher", Runtime: START_TIME},
+		Myerrors:       myerrors,
+	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := myapi.Run(); err != nil {
+			runok = false
+		}
+	}()
+
+	// Wait for signal and timer
+	var signchan = make(chan os.Signal, 5)
+	signal.Notify(signchan, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	var ticker = time.NewTicker(time.Second * 1)
+
+	// GracefullExit, Wait and stop all
+	gracefullExit := func() {
+		log.Info("GracefullExit")
+		ticker.Stop()
+		signal.Stop(signchan)
+		close(signchan)
+
+		inputer.Stop()
+		// msgInput.Stop()
+		// stlogOutput.Stop()
+		// apilogOutput.Stop()
+		// waitChanEmpty(chan_stlog_0, chan_stlog_1)
+		myapi.Stop()
+		wg.Wait() // Wait workers
+	}
+
+	// Waitting... signal and timer. block here.
+	for {
+		select {
+		case <-ticker.C:
+			if !runok {
+				gracefullExit()
+			}
+		case s, ok := <-signchan:
+			if !ok {
+				goto END
+			}
+			switch s {
+			case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
+				log.Info("Receive SIGNAL: ", s)
+				gracefullExit()
+			default:
+				log.Info("Receive other signal, ignore", s)
+			}
+		}
+	}
+
+END:
+	log.Info("END")
 }
