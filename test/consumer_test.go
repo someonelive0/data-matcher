@@ -92,7 +92,7 @@ func TestConsumerGroup(t *testing.T) {
 		Password: *password,
 	}
 	dialer := &kafka.Dialer{
-		Timeout:       10 * time.Second,
+		Timeout:       5 * time.Second,
 		DualStack:     true,
 		SASLMechanism: mechanism,
 	}
@@ -108,7 +108,7 @@ func TestConsumerGroup(t *testing.T) {
 
 	// ctx := context.Background()
 	// 使用 WithTimeout 创建一个带有超时的上下文对象
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// 接收消息

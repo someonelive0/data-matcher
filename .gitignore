@@ -2,3 +2,4 @@
 go.sum
 *.exe
 log/
+etc/*.yaml
