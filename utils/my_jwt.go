@@ -5,17 +5,18 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
+// RS256 只需要一个SignKey
 type MyJwt struct {
-	SigningKey []byte // secret key
+	signKey []byte // secret key
 }
 
-// Claims on standard claims
+// 自定义声明
 type MyClaims struct {
+	*jwt.StandardClaims
 	ID string // authority id
-	jwt.StandardClaims
 }
 
 // Token errors
@@ -31,12 +32,25 @@ func NewMyJwt(secret []byte) *MyJwt {
 	if secret != nil {
 		default_secret = secret
 	}
-	return &MyJwt{SigningKey: default_secret}
+	return &MyJwt{signKey: default_secret}
 }
 
-func (p *MyJwt) CreateToken(c MyClaims) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, c)
-	return token.SignedString(p.SigningKey)
+func (p *MyJwt) CreateToken(id string) (string, error) {
+	t := jwt.New(jwt.GetSigningMethod("HS256"))
+
+	t.Claims = &MyClaims{
+		&jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(time.Hour * 87600).Unix(), // 10 years
+			IssuedAt:  time.Now().Unix(),
+			Issuer:    "data-matcher", // 签发人
+			Subject:   "manage-api",
+			Audience:  "idm",
+			Id:        id,
+		},
+		id,
+	}
+
+	return t.SignedString(p.signKey)
 }
 
 func (p *MyJwt) ParseToken(tokenString string) (*MyClaims, error) {
@@ -45,7 +59,7 @@ func (p *MyJwt) ParseToken(tokenString string) (*MyClaims, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-			return p.SigningKey, nil
+			return p.signKey, nil // 回调使用signKey
 		})
 	if err != nil {
 		if ve, ok := err.(*jwt.ValidationError); ok {
@@ -65,28 +79,8 @@ func (p *MyJwt) ParseToken(tokenString string) (*MyClaims, error) {
 	}
 
 	//parse token to Claims
-	//if mc, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 	if c, ok := token.Claims.(*MyClaims); ok && token.Valid {
 		return c, nil
 	}
 	return nil, ErrTokenInvalid
-}
-
-// RefreshToken refesg token
-func (p *MyJwt) RefreshToken(tokenString string) (string, error) {
-	jwt.TimeFunc = func() time.Time {
-		return time.Unix(0, 0)
-	}
-	token, err := jwt.ParseWithClaims(tokenString, &MyClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return p.SigningKey, nil
-	})
-	if err != nil {
-		return "", err
-	}
-	if c, ok := token.Claims.(*MyClaims); ok && token.Valid {
-		jwt.TimeFunc = time.Now
-		c.StandardClaims.ExpiresAt = time.Now().Add(1 * time.Hour).Unix()
-		return p.CreateToken(*c)
-	}
-	return "", ErrTokenInvalid
 }

@@ -148,9 +148,9 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("Malformed Token"))
 		} else {
-			jwtToken := authHeader[1]
+			tokenString := authHeader[1]
 			myjwt := NewMyJwt(nil)
-			claims, err := myjwt.ParseToken(jwtToken)
+			claims, err := myjwt.ParseToken(tokenString)
 			if err != nil {
 				log.Warnf("AuthMiddleware parse token failed: %s", err)
 				w.WriteHeader(http.StatusUnauthorized)

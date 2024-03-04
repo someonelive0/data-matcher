@@ -44,7 +44,7 @@ func (p *ManageApi) Run() error {
 	localaddr := fmt.Sprintf(":%d", p.Port)
 
 	r := mux.NewRouter().StrictSlash(true)
-	// r.Use(utils.AuthMiddleware)
+	r.Use(utils.AuthMiddleware)
 	r.HandleFunc("/", p.StatusHandler).Methods("GET")
 	r.HandleFunc("/status", p.StatusHandler).Methods("GET")
 	r.HandleFunc("/debug", p.DebugHandler).Methods("GET", "PUT")
