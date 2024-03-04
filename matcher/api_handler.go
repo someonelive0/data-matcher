@@ -11,7 +11,7 @@ import (
 	"data-matcher/utils"
 )
 
-func (p *MatcherApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
+func (p *ManageApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	s := fmt.Sprintf(`{"run_time": "%s", "pid": %d, `, p.Runtime.Format(time.RFC3339), os.Getpid())
 	s += fmt.Sprintf(`"process_mem": %s, `, utils.ProcessMem())
@@ -46,7 +46,7 @@ func (p *MatcherApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, s)
 }
 
-func (p *MatcherApi) statisticHandler(w http.ResponseWriter, r *http.Request) {
+func (p *ManageApi) statisticHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	fmt.Fprintf(w, `{"standard_log_v4": `)
 	// w.Write(p.Stats_stlog.Dump())
@@ -55,19 +55,19 @@ func (p *MatcherApi) statisticHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `}`)
 }
 
-func (p *MatcherApi) errorsHandler(w http.ResponseWriter, r *http.Request) {
+func (p *ManageApi) errorsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.Write(p.Myerrors.Dump())
 }
 
-func (p *MatcherApi) configHandler(w http.ResponseWriter, r *http.Request) {
+func (p *ManageApi) configHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	// if r.Method == "GET" {
 	// 	toml.NewEncoder(w).Encode(p.Config)
 	// }
 }
 
-func (p *MatcherApi) configItemHandler(w http.ResponseWriter, r *http.Request) {
+func (p *ManageApi) configItemHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	// vars := mux.Vars(r)
 	// //log.Debugf("SyslogApi vars: %v", vars)
@@ -93,7 +93,7 @@ func (p *MatcherApi) configItemHandler(w http.ResponseWriter, r *http.Request) {
 	// }
 }
 
-func (p *MatcherApi) policyHandler(w http.ResponseWriter, r *http.Request) {
+func (p *ManageApi) policyHandler(w http.ResponseWriter, r *http.Request) {
 	//vars := mux.Vars(r)
 	w.WriteHeader(http.StatusOK)
 
@@ -125,20 +125,20 @@ func (p *MatcherApi) policyHandler(w http.ResponseWriter, r *http.Request) {
 	// }
 }
 
-func (p *MatcherApi) policyReloadHandler(w http.ResponseWriter, r *http.Request) {
-	log.Info("MatcherApi receive reload policy command")
+func (p *ManageApi) policyReloadHandler(w http.ResponseWriter, r *http.Request) {
+	log.Info("ManageApi receive reload policy command")
 	w.WriteHeader(http.StatusOK)
 	// test uploaded gather policy file, that is etc/user.xml.upload
 	// filename := "etc/" + p.Config.Completeconfig.UserCompleteFile + ".upload"
 	// if _, err := os.Stat(filename); err == nil {
 	// 	c := NewUserCache(filename)
 	// 	if err := c.LoadXML(); err != nil {
-	// 		log.Errorf("MatcherApi check wrong %s: %s", filename, err)
+	// 		log.Errorf("ManageApi check wrong %s: %s", filename, err)
 	// 		// maybe delete the uploaded file
 	// 	} else {
-	// 		log.Infof("MatcherApi existed upload file %s, reload it", filename)
+	// 		log.Infof("ManageApi existed upload file %s, reload it", filename)
 	// 		if err := os.Rename(filename, filename[:len(filename)-7]); err != nil {
-	// 			log.Errorf("MatcherApi rename %s failed: %s", filename, err)
+	// 			log.Errorf("ManageApi rename %s failed: %s", filename, err)
 	// 		}
 	// 	}
 	// }
@@ -146,12 +146,12 @@ func (p *MatcherApi) policyReloadHandler(w http.ResponseWriter, r *http.Request)
 	// if _, err := os.Stat(filename); err == nil {
 	// 	c := NewAccountCache(filename)
 	// 	if err := c.LoadXML(); err != nil {
-	// 		log.Errorf("MatcherApi check wrong %s: %s", filename, err)
+	// 		log.Errorf("ManageApi check wrong %s: %s", filename, err)
 	// 		// maybe delete the uploaded file
 	// 	} else {
-	// 		log.Infof("MatcherApi existed upload file %s, reload it", filename)
+	// 		log.Infof("ManageApi existed upload file %s, reload it", filename)
 	// 		if err := os.Rename(filename, filename[:len(filename)-7]); err != nil {
-	// 			log.Errorf("MatcherApi rename %s failed: %s", filename, err)
+	// 			log.Errorf("ManageApi rename %s failed: %s", filename, err)
 	// 		}
 	// 	}
 	// }
@@ -159,12 +159,12 @@ func (p *MatcherApi) policyReloadHandler(w http.ResponseWriter, r *http.Request)
 	// if _, err := os.Stat(filename); err == nil {
 	// 	c := NewAssetCache(filename)
 	// 	if err := c.LoadXML(); err != nil {
-	// 		log.Errorf("MatcherApi check wrong %s: %s", filename, err)
+	// 		log.Errorf("ManageApi check wrong %s: %s", filename, err)
 	// 		// maybe delete the uploaded file
 	// 	} else {
-	// 		log.Infof("MatcherApi existed upload file %s, reload it", filename)
+	// 		log.Infof("ManageApi existed upload file %s, reload it", filename)
 	// 		if err := os.Rename(filename, filename[:len(filename)-7]); err != nil {
-	// 			log.Errorf("MatcherApi rename %s failed: %s", filename, err)
+	// 			log.Errorf("ManageApi rename %s failed: %s", filename, err)
 	// 		}
 	// 	}
 	// }
@@ -172,12 +172,12 @@ func (p *MatcherApi) policyReloadHandler(w http.ResponseWriter, r *http.Request)
 	// if _, err := os.Stat(filename); err == nil {
 	// 	c := NewAuthCache(filename)
 	// 	if err := c.LoadXML(); err != nil {
-	// 		log.Errorf("MatcherApi check wrong %s: %s", filename, err)
+	// 		log.Errorf("ManageApi check wrong %s: %s", filename, err)
 	// 		// maybe delete the uploaded file
 	// 	} else {
-	// 		log.Infof("MatcherApi existed upload file %s, reload it", filename)
+	// 		log.Infof("ManageApi existed upload file %s, reload it", filename)
 	// 		if err := os.Rename(filename, filename[:len(filename)-7]); err != nil {
-	// 			log.Errorf("MatcherApi rename %s failed: %s", filename, err)
+	// 			log.Errorf("ManageApi rename %s failed: %s", filename, err)
 	// 		}
 	// 	}
 	// }
@@ -185,12 +185,12 @@ func (p *MatcherApi) policyReloadHandler(w http.ResponseWriter, r *http.Request)
 	// if _, err := os.Stat(filename); err == nil {
 	// 	c := NewSysdevCache(filename)
 	// 	if err := c.LoadXML(); err != nil {
-	// 		log.Errorf("MatcherApi check wrong %s: %s", filename, err)
+	// 		log.Errorf("ManageApi check wrong %s: %s", filename, err)
 	// 		// maybe delete the uploaded file
 	// 	} else {
-	// 		log.Infof("MatcherApi existed upload file %s, reload it", filename)
+	// 		log.Infof("ManageApi existed upload file %s, reload it", filename)
 	// 		if err := os.Rename(filename, filename[:len(filename)-7]); err != nil {
-	// 			log.Errorf("MatcherApi rename %s failed: %s", filename, err)
+	// 			log.Errorf("ManageApi rename %s failed: %s", filename, err)
 	// 		}
 	// 	}
 	// }
@@ -198,12 +198,12 @@ func (p *MatcherApi) policyReloadHandler(w http.ResponseWriter, r *http.Request)
 	// if _, err := os.Stat(filename); err == nil {
 	// 	c := NewHolidayPolicy(filename)
 	// 	if err := c.LoadJson(); err != nil {
-	// 		log.Errorf("MatcherApi check wrong %s: %s", filename, err)
+	// 		log.Errorf("ManageApi check wrong %s: %s", filename, err)
 	// 		// maybe delete the uploaded file
 	// 	} else {
-	// 		log.Infof("MatcherApi existed upload file %s, reload it", filename)
+	// 		log.Infof("ManageApi existed upload file %s, reload it", filename)
 	// 		if err := os.Rename(filename, filename[:len(filename)-7]); err != nil {
-	// 			log.Errorf("MatcherApi rename %s failed: %s", filename, err)
+	// 			log.Errorf("ManageApi rename %s failed: %s", filename, err)
 	// 		}
 	// 	}
 	// }

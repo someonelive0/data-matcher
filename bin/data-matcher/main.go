@@ -78,7 +78,7 @@ func main() {
 	wg.Wait()
 
 	// run api interface
-	var myapi = matcher.MatcherApi{
+	var myapi = matcher.ManageApi{
 		RestapiHandler: utils.RestapiHandler{Name: "data-matcher", Runtime: START_TIME},
 		Myerrors:       myerrors,
 	}

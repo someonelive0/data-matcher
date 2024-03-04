@@ -31,7 +31,7 @@ func main() {
 	log.Printf("send %d messages with length %d\n", *arg_num, len(msg))
 	t0 := time.Now()
 	for i := 0; i < *arg_num; i++ {
-		if err = utils.SendMsg(nc, *arg_subject, msg); err != nil {
+		if err = utils.NatsSendMsg(nc, *arg_subject, msg); err != nil {
 			log.Println("sendmsg failed: ", err)
 		}
 		// print("----> %v\n", i)

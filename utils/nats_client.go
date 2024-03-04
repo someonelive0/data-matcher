@@ -101,7 +101,7 @@ func QueueSub2Chan(nc *nats.Conn, subject, queue_name string, ch chan *nats.Msg)
 	return sub, nil
 }
 
-func SendMsg(nc *nats.Conn, subject, msg string) error {
+func NatsSendMsg(nc *nats.Conn, subject, msg string) error {
 	if err := nc.Publish(subject, []byte(msg)); err != nil {
 		return err
 	}

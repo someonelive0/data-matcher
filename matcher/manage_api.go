@@ -14,7 +14,7 @@ import (
 	"data-matcher/utils"
 )
 
-type MatcherApi struct {
+type ManageApi struct {
 	utils.RestapiHandler
 
 	Host       string
@@ -41,7 +41,7 @@ type MatcherApi struct {
 	server *http.Server
 }
 
-func (p *MatcherApi) Run() error {
+func (p *ManageApi) Run() error {
 	if len(p.ApiPorts) == 0 {
 		return errors.New("not set api port")
 	}
@@ -76,19 +76,19 @@ func (p *MatcherApi) Run() error {
 		Handler:      r,
 	}
 
-	//defer log.Debug("MatcherApi closed")
-	log.Info("MatcherApi listen https://", localaddr)
+	//defer log.Debug("ManageApi closed")
+	log.Info("ManageApi listen https://", localaddr)
 	if err := p.server.ListenAndServeTLS("", ""); err != nil {
 		if err.Error() == "http: Server closed" {
 			return nil
 		}
-		log.Error("MatcherApi ListenAndServeTLS failed: ", err)
+		log.Error("ManageApi ListenAndServeTLS failed: ", err)
 		return err
 	}
 	return nil
 }
 
-func (p *MatcherApi) Stop() error {
+func (p *ManageApi) Stop() error {
 	if p.server != nil {
 		p.server.Shutdown(context.Background())
 		p.server = nil
