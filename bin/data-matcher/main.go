@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -18,22 +19,15 @@ import (
 )
 
 var (
-	param_debug   = flag.Bool("D", false, "debug")
-	param_version = flag.Bool("v", false, "version")
-	param_config  = flag.String("f", "etc/data-matcher.yaml", "config filename")
-	arg_server    = flag.String("server", "nats://localhost:4222", "nats server hostname or ip")
-	arg_user      = flag.String("user", "", "nats user")
-	arg_password  = flag.String("password", "", "")
-	arg_subject   = flag.String("subject", "foo", "subject of nats to receive message")
-	arg_queue     = flag.String("queue", "foo", "queue name for the subject")
-	arg_chan_size = flag.Int("chan-size", 1000000, "channel size to cache message")
-	arg_routines  = flag.Int("routines", 8, "routines to process message")
-	START_TIME    = time.Now()
+	arg_debug   = flag.Bool("D", false, "debug")
+	arg_version = flag.Bool("v", false, "version")
+	arg_config  = flag.String("f", "etc/data-matcher.yaml", "config filename")
+	START_TIME  = time.Now()
 )
 
 func init() {
 	flag.Parse()
-	if *param_version {
+	if *arg_version {
 		fmt.Print(utils.IDSS_BANNER)
 		fmt.Printf("%s\n", utils.SERVICE_VERSION)
 		os.Exit(0)
@@ -41,33 +35,34 @@ func init() {
 	utils.ShowBannerForApp("data-matcher", utils.SERVICE_VERSION, utils.BUILD_TIME)
 	utils.Chdir2PrgPath()
 	fmt.Println("pwd:", utils.GetPrgDir())
-	utils.InitLog("data-matcher.log", *param_debug)
+	utils.InitLog("data-matcher.log", *arg_debug)
 	log.Infof("BEGIN... %v, config=%v, debug=%v",
-		START_TIME.Format("2006-01-02 15:04:05"), *param_config, *param_debug)
+		START_TIME.Format(time.DateTime), *arg_config, *arg_debug)
 }
 
 func main() {
 	var myerrors = utils.AddLogHook()
 
 	// load config
-	// var myconfig, err = matcher.LoadConfig(*param_config)
-	// if err != nil {
-	// 	log.Errorf("loadConfig error %s", err)
-	// 	os.Exit(1)
-	// }
-	// log.Infof("MyConfig: %s", myconfig.Dump())
+	var myconfig, err = matcher.LoadConfig(*arg_config)
+	if err != nil {
+		log.Errorf("loadConfig error %s", err)
+		os.Exit(1)
+	}
+	log.Infof("myconfig: %s", myconfig.Dump())
 
 	runok := true // Exit when run is not ok
-	msgch := make(chan *nats.Msg, *arg_chan_size)
+	msgch := make(chan *nats.Msg, myconfig.ChannelSize)
 	var inputer = matcher.Inputer{}
-	err := inputer.Run(msgch, *arg_server, *arg_user, *arg_password, *arg_subject, *arg_queue)
+	err = inputer.Run(msgch, strings.Join(myconfig.NatsConfig.Servers, ","),
+		myconfig.NatsConfig.User, myconfig.NatsConfig.Password, myconfig.HttpFlow.Subject, myconfig.NatsConfig.QueueName)
 	if err != nil {
 		return
 	}
 
 	// run workers
 	var wg sync.WaitGroup
-	for i := 0; i < *arg_routines; i++ {
+	for i := 0; i < myconfig.Workers; i++ {
 		wg.Add(1)
 		go func(name string) {
 			defer wg.Done()
@@ -75,11 +70,12 @@ func main() {
 		}(strconv.Itoa(i))
 	}
 
-	wg.Wait()
-
 	// run api interface
 	var myapi = matcher.ManageApi{
 		RestapiHandler: utils.RestapiHandler{Name: "data-matcher", Runtime: START_TIME},
+		Port:           myconfig.ManagePort,
+		Config:         myconfig,
+		MsgChan:        msgch,
 		Myerrors:       myerrors,
 	}
 	wg.Add(1)
@@ -103,11 +99,11 @@ func main() {
 		close(signchan)
 
 		inputer.Stop()
-		// msgInput.Stop()
 		// stlogOutput.Stop()
 		// apilogOutput.Stop()
 		// waitChanEmpty(chan_stlog_0, chan_stlog_1)
 		myapi.Stop()
+		close(msgch)
 		wg.Wait() // Wait workers
 	}
 

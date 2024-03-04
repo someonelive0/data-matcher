@@ -26,7 +26,7 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 
 	nc, err := nats.Connect(
 		servers,
-		nats.Name("matcher of mime 0.1.0"),
+		nats.Name("data-matcher 3.0.0"),
 		nats.UserInfo(user, password),
 		nats.Timeout(10*time.Second),
 		nats.PingInterval(20*time.Second),
@@ -36,22 +36,22 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 		nats.ReconnectBufSize(50*1024*1024),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
 			// handle disconnect error event
-			log.Errorf("DisconnectErrHandler client disconnected: %v\n", err)
+			log.Errorf("nats DisconnectErrHandler client disconnected: %v\n", err)
 		}),
 		nats.ReconnectHandler(func(nc *nats.Conn) {
 			// handle reconnect event
-			log.Infof("ReconnectHandler client reconnected")
+			log.Infof("nats ReconnectHandler client reconnected")
 		}),
 		nats.ClosedHandler(func(_ *nats.Conn) {
-			log.Warnf("ClosedHandler client closed")
+			log.Warnf("nats ClosedHandler client closed")
 		}),
 		nats.DiscoveredServersHandler(func(nc *nats.Conn) {
-			log.Warnf("DiscoveredServersHandler client discover")
-			log.Infof("Known servers: %v\n", nc.Servers())
-			log.Infof("Discovered servers: %v\n", nc.DiscoveredServers())
+			log.Warnf("nats DiscoveredServersHandler client discover")
+			log.Infof("nats Known servers: %v\n", nc.Servers())
+			log.Infof("nats Discovered servers: %v\n", nc.DiscoveredServers())
 		}),
 		nats.ErrorHandler(func(_ *nats.Conn, _ *nats.Subscription, err error) {
-			log.Errorf("ErrorHandler Error: %v", err)
+			log.Errorf("nats ErrorHandler Error: %v", err)
 			// if err == nats.ErrSlowConsumer { // logSlowConsumer
 			// pendingMsgs, _, err := sub.Pending()
 			// if err != nil {

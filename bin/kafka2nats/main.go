@@ -36,16 +36,16 @@ func init() {
 	fmt.Println("pwd:", utils.GetPrgDir())
 	utils.InitLog("kafka2nats.log", *arg_debug)
 	log.Infof("BEGIN... %v, config=%v, debug=%v",
-		START_TIME.Format("2006-01-02 15:04:05"), *arg_config, *arg_debug)
+		START_TIME.Format(time.DateTime), *arg_config, *arg_debug)
 }
 
 func main() {
-	myconfig, err := ReadConfig(*arg_config)
+	myconfig, err := LoadConfig(*arg_config)
 	if err != nil {
 		log.Errorf("read config failed: %v", err)
 		os.Exit(1)
 	}
-	log.Infof("myconfig: %s", DumpConfig(myconfig))
+	log.Infof("myconfig: %s", myconfig.Dump())
 
 	var ch = make(chan []byte)
 	var wg sync.WaitGroup

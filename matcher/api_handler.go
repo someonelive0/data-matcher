@@ -39,10 +39,7 @@ func (p *ManageApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	// 	p.Authcache.Number, p.Authcache.Matched)
 	// s += fmt.Sprintf(`"sysdev_policy": { "number": %d, "matched": %d } }, `,
 	// 	p.Sysdevcache.Number, p.Sysdevcache.Matched)
-	// s += fmt.Sprintf(`"channel": {"stlog_channel_in": {"len": %d, "cap": %d}, `, len(p.Chan_stlog_0), cap(p.Chan_stlog_0))
-	// s += fmt.Sprintf(`"stlog_channel_out": {"len": %d, "cap": %d}, `, len(p.Chan_stlog_1), cap(p.Chan_stlog_1))
-	// s += fmt.Sprintf(`"apilog_channel_in": {"len": %d, "cap": %d}, `, len(p.Chan_apilog_0), cap(p.Chan_apilog_0))
-	// s += fmt.Sprintf(`"apilog_channel_out": {"len": %d, "cap": %d} } }`, len(p.Chan_apilog_1), cap(p.Chan_apilog_1))
+	s += fmt.Sprintf(`"channel": {"msg_channel": {"len": %d, "cap": %d} } }`, len(p.MsgChan), cap(p.MsgChan))
 	fmt.Fprint(w, s)
 }
 
@@ -62,9 +59,7 @@ func (p *ManageApi) errorsHandler(w http.ResponseWriter, r *http.Request) {
 
 func (p *ManageApi) configHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	// if r.Method == "GET" {
-	// 	toml.NewEncoder(w).Encode(p.Config)
-	// }
+	w.Write(p.Config.Dump())
 }
 
 func (p *ManageApi) configItemHandler(w http.ResponseWriter, r *http.Request) {

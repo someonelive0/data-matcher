@@ -3,12 +3,12 @@ package matcher
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
 
 	"data-matcher/utils"
@@ -17,10 +17,9 @@ import (
 type ManageApi struct {
 	utils.RestapiHandler
 
-	Host       string
-	ApiPorts   []int
-	Configfile string
-	// Config        *MyConfig
+	// Host       string
+	Port   int
+	Config *MyConfig
 	// Stats_stlog   *CompleteStatistic
 	// Stats_apilog  *CompleteStatistic
 	// Usercache     *UserCache
@@ -29,7 +28,7 @@ type ManageApi struct {
 	// Authcache     *AuthCache
 	// Sysdevcache   *SysdevCache
 	// Holidaypolicy *HolidayPolicy
-	// Chan_stlog_0  chan interface{}
+	MsgChan chan *nats.Msg
 	// Chan_stlog_1  chan interface{}
 	// Chan_apilog_0 chan interface{}
 	// Chan_apilog_1 chan interface{}
@@ -42,13 +41,10 @@ type ManageApi struct {
 }
 
 func (p *ManageApi) Run() error {
-	if len(p.ApiPorts) == 0 {
-		return errors.New("not set api port")
-	}
-	localaddr := fmt.Sprintf(":%d", p.ApiPorts[0])
+	localaddr := fmt.Sprintf(":%d", p.Port)
 
 	r := mux.NewRouter().StrictSlash(true)
-	r.Use(utils.AuthMiddleware)
+	// r.Use(utils.AuthMiddleware)
 	r.HandleFunc("/", p.StatusHandler).Methods("GET")
 	r.HandleFunc("/status", p.StatusHandler).Methods("GET")
 	r.HandleFunc("/debug", p.DebugHandler).Methods("GET", "PUT")
@@ -77,12 +73,12 @@ func (p *ManageApi) Run() error {
 	}
 
 	//defer log.Debug("ManageApi closed")
-	log.Info("ManageApi listen https://", localaddr)
+	log.Infof("ManageApi listen https://%s", localaddr)
 	if err := p.server.ListenAndServeTLS("", ""); err != nil {
 		if err.Error() == "http: Server closed" {
 			return nil
 		}
-		log.Error("ManageApi ListenAndServeTLS failed: ", err)
+		log.Errorf("ManageApi ListenAndServeTLS failed: %s", err)
 		return err
 	}
 	return nil
@@ -108,63 +104,67 @@ func LoadTLSCert() *tls.Config {
 	//cert, err := tls.LoadX509KeyPair("cert.pem", "key.pem")
 	cert, err := tls.X509KeyPair(CertPem, KeyPem)
 	if err != nil {
+		log.Errorf("tls.X509KeyPair failed: %s", err)
 		return nil
 	}
 	tlscfg := &tls.Config{
-		Certificates: []tls.Certificate{cert},
+		InsecureSkipVerify: true,
+		Certificates:       []tls.Certificate{cert},
 	}
 	return tlscfg
 }
 
 var (
 	CertPem = []byte(`-----BEGIN CERTIFICATE-----
-	MIIDmzCCAoOgAwIBAgIJAKKqG9wnV0O3MA0GCSqGSIb3DQEBCwUAMGMxCzAJBgNV
-	BAYTAkNOMQswCQYDVQQIDAJCSjELMAkGA1UEBwwCQkoxDTALBgNVBAoMBGlkc3Mx
-	ETAPBgNVBAsMCHNlY3VyaXR5MRgwFgYDVQQDDA9pZG0uaWRzcy1jbi5jb20wIBcN
-	MjQwMzAyMDYxODMzWhgPMjEyNDAyMDcwNjE4MzNaMGMxCzAJBgNVBAYTAkNOMQsw
-	CQYDVQQIDAJCSjELMAkGA1UEBwwCQkoxDTALBgNVBAoMBGlkc3MxETAPBgNVBAsM
-	CHNlY3VyaXR5MRgwFgYDVQQDDA9pZG0uaWRzcy1jbi5jb20wggEiMA0GCSqGSIb3
-	DQEBAQUAA4IBDwAwggEKAoIBAQCyWSFjBCh5nWTagDQPMj14n9PwwbMp4SfRrB/X
-	bJpfPsUbMXYaghUnl9sb7qf10pDW5zVh0c5M48vXoryebU4vGWxrcgeCwBI+TXRG
-	VOq6/CJ3spM3zxtEg8vKEL81E4qYT2RItN5g+fWjeOAgxik9QS5eJrTBN4YaGd23
-	y8XGV+rHMkbk3S13pS3XiJ4Qm8NYnPScwSY/Nt5BsULyBzCb58JzXaa4epEmopqz
-	7/tU8RBcEyVW/UZ4tsJyPIfAGuCJUR4VIRELNhggaX2nF2lan40xKoOd3w55io6S
-	Hi2E4ryhn248vBoqk77fkhR+mE1TfV1fJCZQPFI0zSibysPLAgMBAAGjUDBOMB0G
-	A1UdDgQWBBRlbGT5LafVQc3tAekoLnoFH/bKjDAfBgNVHSMEGDAWgBRlbGT5LafV
-	Qc3tAekoLnoFH/bKjDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQBO
-	fvbdmBVHJmm1pPhdTVuSscr+43Ao8vHBgMASEwalZyeupj7MHS1USZR8v+gd1gUu
-	FFsNCX3HA6SwQLxMsAR8HS3lCNexVOwfuI49vq0dped4kg7f8C+8c61NJKlteXXB
-	HbQlrLq+sTmcKVtzgSwGEDjq9nlEr3HktPPRRA1h0DlWtrnriWgVPaUiDjZ+mrjV
-	gvRnxNpai+UZ85sj8gVT8LROteWSLPWg8Soef8Ul7wUfSeAyeMIW9DSJgGnFkJ9B
-	d0HmSCinjXn6SrBKC6kB3gP8pTiR611OyDOhwjXoHQL/WPNyWonKdbkjBIfX7xLf
-	wRWnHaba5D096ufOAxEA
-	-----END CERTIFICATE-----`)
+MIIDmzCCAoOgAwIBAgIJAK5qKMsSAwwzMA0GCSqGSIb3DQEBCwUAMGMxCzAJBgNV
+BAYTAkNOMQswCQYDVQQIDAJCSjELMAkGA1UEBwwCQkoxDTALBgNVBAoMBGlkc3Mx
+ETAPBgNVBAsMCHNlY3VyaXR5MRgwFgYDVQQDDA9pZG0uaWRzcy1jbi5jb20wIBcN
+MjQwMzA0MDkwMDIxWhgPMjEyNDAyMDkwOTAwMjFaMGMxCzAJBgNVBAYTAkNOMQsw
+CQYDVQQIDAJCSjELMAkGA1UEBwwCQkoxDTALBgNVBAoMBGlkc3MxETAPBgNVBAsM
+CHNlY3VyaXR5MRgwFgYDVQQDDA9pZG0uaWRzcy1jbi5jb20wggEiMA0GCSqGSIb3
+DQEBAQUAA4IBDwAwggEKAoIBAQDhd7/M0jl7OsLns5k21XnUdbWVlehTi/GR1XDn
+F9UsRS9n2Hz8bXk8XagHX65wG3u1tjulOdZNe+2tSJ8pyUC2D0Z9Rbg/EDL+fqlr
+Got8gfqatfZ1sD/GbtINqq8z8L4v7WWclExIQDw81Vc5gFVD3G8iUnC8uIG8wTKx
+gB+EJ0nSpK9NpMy4O4CIOrmlCaivVR6Uqjb0HOLhDmBXR858zH0o1h5I6Iir696z
+WXu6PYaZG3Tar8VS6WGA+7ybzpZJVBJOKBKrzMW0Xj3KbYKfQJqD86USKEDzubHx
+GeWWvRUIL98FPFFJslbQ0N2+EvbxRPydxffmrVV6pieSWpw1AgMBAAGjUDBOMB0G
+A1UdDgQWBBRFoK4eWcr2pij5kdAI674/dyG2SzAfBgNVHSMEGDAWgBRFoK4eWcr2
+pij5kdAI674/dyG2SzAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4IBAQCe
+RaTCKVFhzp7zXXh7tG7LXgHhmseSs+boz6nOTPOdG2e9CkjkeXfy7hDYpTdE5pys
+qweKQ3NhyubxkGVJLlSeLqqiA7XbcuwCh/zgdnaUMzDBJvy5PYHkLxn1nGBI68fX
+03N1nA9y+4k0luYT3P40P5cgBkR7MhOLYL16v5Uh4mt4CdoL/89YX+yIIfCnqTUf
+gN2E2TEbyYAfhvmu/q9BREhiPOBK0RhldAsmyTPTizEC6R6g0oHM4nlFzayVB2qA
+7j6CHBXa+H19B16Hw6JxXGz6KEXa2pKHehHu3UzDrbiJIWly5yH1fa74MDLAnrGq
+KbMxgtkmhNMoK5yMp3Li
+-----END CERTIFICATE-----
+`)
 
 	KeyPem = []byte(`-----BEGIN RSA PRIVATE KEY-----
-	MIIEpQIBAAKCAQEAslkhYwQoeZ1k2oA0DzI9eJ/T8MGzKeEn0awf12yaXz7FGzF2
-	GoIVJ5fbG+6n9dKQ1uc1YdHOTOPL16K8nm1OLxlsa3IHgsASPk10RlTquvwid7KT
-	N88bRIPLyhC/NROKmE9kSLTeYPn1o3jgIMYpPUEuXia0wTeGGhndt8vFxlfqxzJG
-	5N0td6Ut14ieEJvDWJz0nMEmPzbeQbFC8gcwm+fCc12muHqRJqKas+/7VPEQXBMl
-	Vv1GeLbCcjyHwBrgiVEeFSERCzYYIGl9pxdpWp+NMSqDnd8OeYqOkh4thOK8oZ9u
-	PLwaKpO+35IUfphNU31dXyQmUDxSNM0om8rDywIDAQABAoIBAQCd33JDcSHXDbGC
-	DayHqyRpC6oT25MaRln2K5SAIH3CRBE80hrGulG5m530at05KGzYHxDNB2jD/X2q
-	4z5uSznDTZEAx47IefdsOSntPCwQ2zIznNreszFjA/u4YfywIh00WErgZWLYm0uK
-	qmxT9rX4qCNAaqjkxJ6rqivvD62BtUPWyPTdRq4OFyLTDqEdlQxaddYF8eQfBOpK
-	h55lONeJyoc/ns43ftb33wtnWwc6XM9Lenttx5nFrtUTHDr++VMe0L5gQQ1V5vVt
-	6QQ6Q5tf5B1ArfzlmL4bHBRC7f0iSNTLN9L8LwbJhSBsExhnFqYjc10gGYhB9MK7
-	ld/gidPJAoGBAOhx+EQJi93NlFsaj2rXEy5jFpQH7IkDKWdhHmH/2EYNkZ6LSoqp
-	hgyVUn5eaODBuVEq7SagUnZk4FeZo/U46KsHmucAJXIxJleApjz5n2324K7kaGaf
-	XzMuQEEwb9RDnLi/29KBxlMr6FWJ82GQINVuHweNqK/nlr8wDBSZsApnAoGBAMRr
-	ykjwmSHtNuo2pCojSbDdCHOMbu8fld8gtbfWSNMqVC0ntiHuN1/K54WHdy4JyQSS
-	v1TdEl2ai2jbLRbYWuGkBr5bQmLUPD7Kh5Yl4bAZv+DVbRf4RAd1RdkeDJ+ezrSx
-	o8YBQ8qaIO3ZnirUvEIv8nPvAoYN7sQ04cnJliT9AoGBAJWyAC7g7wBzCt35Ju+p
-	fyLakYnX6I78SEfZldWLDN9gka1HC0RtlHS6HZxgdK56VDxfpsa/bRvuL0R7H8on
-	UkAC79FgmL0HxieIJIcUQ4Zv/ZbkZg/hB1BQsvTImtxahq28cXcKOI0Ls96Srvjf
-	9yU8fCNDKaXPQZfy+3Sw3Vx1AoGBAKMUz84BnVLSzk5l8aVeyRdEXXj6dzyon9mz
-	Ic0x6CMTOPKIzyqay3UIVXPDRot96l2Wra77If1/jBISL/yQw9wmQMcZpCPEDQUh
-	SLO8XgbFSk+VRE+rfGgo0UZ0MYzx4LOb7ds/P5beo0p37V+oY2ocvxPMtO6ycLSN
-	J45Phg7NAoGALxuGpbxYX7cA060qyyNUHCOYMt7yPT7L5ex1KCmcOdyr2OkazSw2
-	Kj6ziMf/7Qk+uIHjVlecupxJ/NjFRrWUFRQdNdEQ7uQ/hSCu7ITBW/1F6vE7sLbJ
-	DVtbIZqc+VvNUpq0HrAnWayU0voxfcSwuDg3yvWK8fR8Bg57hGRnCPw=
-	-----END RSA PRIVATE KEY-----`)
+MIIEpAIBAAKCAQEA4Xe/zNI5ezrC57OZNtV51HW1lZXoU4vxkdVw5xfVLEUvZ9h8
+/G15PF2oB1+ucBt7tbY7pTnWTXvtrUifKclAtg9GfUW4PxAy/n6paxqLfIH6mrX2
+dbA/xm7SDaqvM/C+L+1lnJRMSEA8PNVXOYBVQ9xvIlJwvLiBvMEysYAfhCdJ0qSv
+TaTMuDuAiDq5pQmor1UelKo29Bzi4Q5gV0fOfMx9KNYeSOiIq+ves1l7uj2GmRt0
+2q/FUulhgPu8m86WSVQSTigSq8zFtF49ym2Cn0Cag/OlEihA87mx8Rnllr0VCC/f
+BTxRSbJW0NDdvhL28UT8ncX35q1VeqYnklqcNQIDAQABAoIBAQDgx5rvHxLxeQbB
+KrtwAGniV6u9wuMJD/a5Flrl+UusRBlb5WfN3XJFrXWMTGbDG5M8+L4EHmI5g3jU
+Dhen+B1MpHP5Bl4GeSbts+dBgQhZC9iFDy3z7M/YC7ncqDLdjIB/laR88xgN3ARx
+/ZtlFz1qV0RwqlH8w9GMFextK7e/7fAymM/S6m8+drdhj6EWPESQwvORNizi8OK2
+y/TpYW0yPXEGzRVi0kJdZDi9ipcw1Lsec+UtJag4UEiHHyOA7VASwLEJ2Kw+HJGu
+YxXLAQXsTehm2yuB+cdV+4xgwnLTDvKupCrf2fjViN90zz8q5qyBhpI3eeHUJZb+
+ZQJkC0XhAoGBAPWVWblY6Fu5cM8+cpzF2rWArhKccTzN040WeYvP5zDmlkzcULyu
+jxsWgGXVem+d4nBz8XirBFVWKOjKuuxyAMdLv3aCivGCh8SsSHsGwwExK7cPrWB4
+TCqwKqdJnUnpMj/T2C1CYFrY3Qt5EX0T0b+nWCkVZdHYluRNJN0r6DmtAoGBAOsH
++YE3QuVaV+Y1pHJ/4YMvkDzpGntYmayWXpKk0ysOhBGSZJXsHVewwCGLOnly7XX6
+ecmXTCiOQRLWqFYCyKj8+V9VE0XpDUXqrSJAzfcRMtsK+NcMjfU4HEIRQP/B1NT8
+lYBKYndPgK2TbRCz8ukC4IU5dLO6L83Ae4ok8c2pAoGAG1FDq8RiBGH6VHND2ICB
+tZLcyiEwz2ytzZHkb1LvCpd7vIz9Rh+8t2ynV6yJdAUB/TRIdf2/+6Yb4tk6Nbbw
+szqPz6Txw6+bXpszbMvxwR4xGKnbxVFcV5tFA1rC7kfMWSE9eLtbcH+TBwWullUw
+DbuVqOxCaTdIgZi7MwcBS/kCgYBAewOcy8hynAKZigX/083O6/GqhFlblcczbl2r
+5cR5f5YELCGkcA7sy/UqPsRgJYO4ZmubPwMJ7V01CedNEZ5znlPcL78F4xZdJDEz
+wIvBSNqm9a+ncC5SJH68MXefs1HszQ9HDyFMkmc/N78oYfY2ry9h3Y2C8YXD8Rbz
+o4cjYQKBgQDAj0TglE/pNlf1TC2h7Eigm87Shat2ILV3vJLPDHnlY03/FA6uNSaf
+XWDTMrfRKdsWNe3NFo8o1Z72yyYTrPmgCtSAbuo2+bT9Qu1ccHck4zYVzpskGwJe
++HvPAG7YzAMZSCKOilCQfSojmnb1euMhfc4Hgbwu3lOG1ilpjv0hWA==
+-----END RSA PRIVATE KEY-----
+`)
 )

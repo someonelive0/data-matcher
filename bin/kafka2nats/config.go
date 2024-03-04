@@ -2,9 +2,13 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
+
+	"data-matcher/utils"
 )
 
 // SASL machanism, such as PLAIN, SCRAM
@@ -29,6 +33,13 @@ type BridgeConfig struct {
 }
 
 type MyConfig struct {
+	Filename string    `yaml:"filename" json:"filename" xml:"filename,attr"`
+	LoadTime time.Time `yaml:"load_time" json:"load_time" xml:"load_time,attr"`
+
+	Version    string `yaml:"version" json:"version"`
+	Host       string `yaml:"host" json:"host"`
+	ManagePort int    `yaml:"manage_port" json:"manage_port" `
+
 	KafkaConfig KafkaConfig `yaml:"kafka"`
 	NatsConfig  NatsConfig  `yaml:"nats"`
 
@@ -36,34 +47,39 @@ type MyConfig struct {
 	Nats2Kafka BridgeConfig `yaml:"nats2kafka"`
 }
 
-func ReadConfig(filename string) (*MyConfig, error) {
+func (p *MyConfig) Dump() []byte {
+	b, _ := json.MarshalIndent(p, "", " ")
+	return b
+}
+
+func LoadConfig(filename string) (*MyConfig, error) {
+	// 都配置文件，如果文件不存在则从模块文件tpl复制成配置文件。思路是考虑到不覆盖已有现场配置文件。
+	if !utils.ExistedOrCopy(filename, filename+".tpl") {
+		return nil, fmt.Errorf("config file [%s] or template file are not found", filename)
+	}
+
 	// 打开 YAML 文件
-	file, err := os.Open(filename)
+	fp, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer fp.Close()
 
 	// 创建解析器
-	decoder := yaml.NewDecoder(file)
+	decoder := yaml.NewDecoder(fp)
 
 	// 配置对象
-	var config MyConfig
+	myconfig := &MyConfig{
+		Filename: filename,
+		LoadTime: time.Now(),
+	}
 
 	// 解析 YAML 数据
-	err = decoder.Decode(&config)
+	err = decoder.Decode(myconfig)
 	if err != nil {
 		// fmt.Println("Error decoding YAML:", err)
 		return nil, err
 	}
 
-	return &config, nil
-}
-
-func DumpConfig(myconfig *MyConfig) []byte {
-	b, err := json.Marshal(*myconfig)
-	if err != nil {
-		return nil
-	}
-	return b
+	return myconfig, nil
 }
