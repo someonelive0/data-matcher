@@ -1,4 +1,4 @@
-package match
+package engine
 
 import (
 	re2 "github.com/wasilibs/go-re2"

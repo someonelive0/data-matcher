@@ -3,10 +3,14 @@ module data-matcher
 go 1.21.6
 
 require (
+	github.com/BobuSumisu/aho-corasick v1.0.3
+	github.com/anknown/ahocorasick v0.0.0-20190904063843-d75dbd5169c0
 	github.com/antonfisher/nested-logrus-formatter v1.3.1
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
+	github.com/cloudflare/ahocorasick v0.0.0-20210425175752-730270c3e184
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/mux v1.8.1
+	github.com/iohub/ahocorasick v0.0.0-20240118134817-7d0e3abf6181
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/nats-io/nats.go v1.33.1
 	github.com/segmentio/kafka-go v0.4.47
@@ -16,6 +20,7 @@ require (
 )
 
 require (
+	github.com/anknown/darts v0.0.0-20151216065714-83ff685239e6 // indirect
 	github.com/jonboulle/clockwork v0.4.0 // indirect
 	github.com/klauspost/compress v1.17.2 // indirect
 	github.com/kr/text v0.2.0 // indirect
