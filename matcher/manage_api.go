@@ -5,8 +5,11 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/arl/statsviz"
+	example "github.com/arl/statsviz/_example"
 	"github.com/gorilla/mux"
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
@@ -45,7 +48,7 @@ func (p *ManageApi) Run() error {
 	localaddr := fmt.Sprintf(":%d", p.Port)
 
 	r := mux.NewRouter().StrictSlash(true)
-	r.Use(utils.AuthMiddleware)
+	r.Use(myAuthMiddleware) // r.Use(utils.AuthMiddleware)
 	r.HandleFunc("/", p.StatusHandler).Methods("GET")
 	r.HandleFunc("/status", p.StatusHandler).Methods("GET")
 	r.HandleFunc("/debug", p.DebugHandler).Methods("GET", "PUT")
@@ -66,6 +69,13 @@ func (p *ManageApi) Run() error {
 	r.HandleFunc("/policy", p.policyReloadHandler).Methods("PUT")
 	r.HandleFunc("/policy/", p.policyHandler).Methods("GET")
 	r.HandleFunc("/policy/{title:[a-z0-9_\\-]+}", p.policyHandler).Methods("GET")
+
+	// add statsviz
+	go example.Work()
+	// Create statsviz server and register the handlers on the router.
+	srv, _ := statsviz.NewServer()
+	r.Methods("GET").Path("/debug/statsviz/ws").Name("GET /debug/statsviz/ws").HandlerFunc(srv.Ws())
+	r.Methods("GET").PathPrefix("/debug/statsviz/").Name("GET /debug/statsviz/").Handler(basicAuth(srv.Index(), "idss", "idss2024", ""))
 
 	p.server = &http.Server{
 		Addr:         localaddr,
@@ -94,6 +104,65 @@ func (p *ManageApi) Stop() error {
 	}
 	return nil
 }
+
+// manage api JWT auth middleware for http router, copy from utils.AuthMiddleware
+func myAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		// skip for statsviz api
+		if len(r.URL.Path) > 7 && r.URL.Path[:7] == "/debug/" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		authHeader := strings.Split(r.Header.Get("Authorization"), "Bearer ")
+		if len(authHeader) != 2 {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Malformed Token"))
+		} else {
+			tokenString := authHeader[1]
+			myjwt := utils.NewMyJwt(nil)
+			claims, err := myjwt.ParseToken(tokenString)
+			if err != nil {
+				log.Warnf("AuthMiddleware parse token failed: %s", err)
+				w.WriteHeader(http.StatusUnauthorized)
+				w.Write([]byte("Unauthorized"))
+			} else {
+				ctx := context.WithValue(r.Context(), "claims", claims)
+				//log.Debug(claims)
+				// Access context values in handlers like this
+				//props, _ := r.Context().Value("claims").(*MyClaims)
+				next.ServeHTTP(w, r.WithContext(ctx))
+			}
+		}
+
+	})
+}
+
+// basicAuth adds HTTP Basic Authentication to h.
+
+func basicAuth(h http.HandlerFunc, user, pwd, realm string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if u, p, ok := r.BasicAuth(); !ok || user != u || pwd != p {
+			w.Header().Set("WWW-Authenticate", `Basic realm="`+realm+`"`)
+			w.WriteHeader(401)
+			w.Write([]byte("Unauthorised.\n"))
+			return
+		}
+		h(w, r)
+	}
+}
+
+// func basicAuthMiddleware(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		if u, p, ok := r.BasicAuth(); !ok || "idss" != u || "idss2024" != p {
+// 			w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+// 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+// 			return
+// 		}
+// 		next.ServeHTTP(w, r)
+// 	})
+// }
 
 /*
 TLS and HTTPS cert, self signed cert and key pem file with PKCS#1-PEM
