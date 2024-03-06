@@ -1,6 +1,7 @@
 package matcher
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -13,13 +14,12 @@ import (
 
 func (p *ManageApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	s := fmt.Sprintf(`{"run_time": "%s", "pid": %d, `, p.Runtime.Format(time.RFC3339), os.Getpid())
-	s += fmt.Sprintf(`"process_mem": %s, `, utils.ProcessMem())
-	// s += fmt.Sprintf(`"input": {"pkts": %d, "tps": %d, "max_tps": %d, "avg_tps": %d, `,
-	// 	p.Input.pkts, p.Input.tps, p.Input.max_tps, p.Input.avg_tps)
-	// s += fmt.Sprintf(`"stlog_partition": %d, "stlog_offset": %d, "apilog_partition": %d, "apilog_offset": %d, `,
-	// 	p.Input.stlog_partition, p.Input.stlog_offset, p.Input.apilog_partition, p.Input.apilog_offset)
-	// s += fmt.Sprintf(`"topics": "%s", "invalid_pkts": %d}, `, p.Input.Topics, p.Input.invalid_pkts)
+	s := fmt.Sprintf(`{"run_time": "%s", "pid": %d`, p.Runtime.Format(time.RFC3339), os.Getpid())
+	s += fmt.Sprintf(`, "process_mem": %s`, utils.ProcessMem())
+	s += fmt.Sprintf(`, "channel": {"msg_channel": {"len": %d, "cap": %d} }`, len(p.MsgChan), cap(p.MsgChan))
+	s += fmt.Sprintf(`, "inputer": %s`, p.Inputer.Dump())
+	b, _ := json.Marshal(p.Workers)
+	s += fmt.Sprintf(`, "worker": %s`, b)
 	// s += fmt.Sprintf(`"standard_log_output": {"count": %d, "success": %d, "failed": %d, "partition": %d, "offset": %d, "topics": "%s"}, `,
 	// 	p.Stlogoutput.Count, p.Stlogoutput.success, p.Stlogoutput.failed,
 	// 	p.Stlogoutput.Topicpartition, p.Stlogoutput.Topicoffset, p.Stlogoutput.Topics)
@@ -39,8 +39,18 @@ func (p *ManageApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	// 	p.Authcache.Number, p.Authcache.Matched)
 	// s += fmt.Sprintf(`"sysdev_policy": { "number": %d, "matched": %d } }, `,
 	// 	p.Sysdevcache.Number, p.Sysdevcache.Matched)
-	s += fmt.Sprintf(`"channel": {"msg_channel": {"len": %d, "cap": %d} } }`, len(p.MsgChan), cap(p.MsgChan))
+	s += "}"
 	fmt.Fprint(w, s)
+}
+
+func (p *ManageApi) monitorHostHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	fmt.Fprint(w, utils.HostDump())
+}
+
+func (p *ManageApi) monitorHostLoadingHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	fmt.Fprint(w, utils.HostLoading())
 }
 
 func (p *ManageApi) statisticHandler(w http.ResponseWriter, r *http.Request) {

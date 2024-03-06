@@ -1,6 +1,8 @@
 package matcher
 
 import (
+	"encoding/json"
+
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
 
@@ -8,6 +10,8 @@ import (
 )
 
 type Inputer struct {
+	CountMsg int64 `json:"count_msg"`
+
 	nc  *nats.Conn
 	sub *nats.Subscription
 }
@@ -23,7 +27,11 @@ func (p *Inputer) Run(msgch chan *nats.Msg,
 	}
 	log.Infof("inputer connect %s success by user %s", arg_server, arg_user)
 
-	sub, err := utils.QueueSub2Chan(nc, arg_subject, arg_queue, msgch)
+	// sub, err := utils.QueueSub2Chan(nc, arg_subject, arg_queue, msgch)
+	sub, err := nc.QueueSubscribe(arg_subject, arg_queue, func(m *nats.Msg) {
+		msgch <- m
+		p.CountMsg++
+	})
 	if err != nil {
 		log.Errorf("inputer QueueSub2Chan failed: %s", err)
 		nc.Close()
@@ -47,4 +55,9 @@ func (p *Inputer) Stop() error {
 		p.nc = nil
 	}
 	return nil
+}
+
+func (p *Inputer) Dump() []byte {
+	b, _ := json.Marshal(p)
+	return b
 }

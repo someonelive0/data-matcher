@@ -32,7 +32,8 @@ type ManageApi struct {
 	// Chan_stlog_1  chan interface{}
 	// Chan_apilog_0 chan interface{}
 	// Chan_apilog_1 chan interface{}
-	// Input         *MsgInput
+	Inputer *Inputer
+	Workers []*Worker
 	// Stlogoutput   *MylogOutput
 	// Apilogoutput  *MylogOutput
 	Myerrors *utils.MyErrors
@@ -53,6 +54,8 @@ func (p *ManageApi) Run() error {
 	r.HandleFunc("/log", p.LogHandler).Methods("GET")
 
 	r.HandleFunc("/dump", p.dumpHandler).Methods("GET")
+	r.HandleFunc("/monitor/host", p.monitorHostHandler).Methods("GET")
+	r.HandleFunc("/monitor/loading", p.monitorHostLoadingHandler).Methods("GET")
 	r.HandleFunc("/statistic", p.statisticHandler).Methods("GET")
 	r.HandleFunc("/errors", p.errorsHandler).Methods("GET")
 	r.HandleFunc("/config", p.configHandler).Methods("GET", "POST")

@@ -1,6 +1,8 @@
 package matcher
 
 import (
+	"encoding/json"
+
 	ahocorasick "github.com/BobuSumisu/aho-corasick"
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
@@ -8,13 +10,13 @@ import (
 )
 
 type Worker struct {
-	Name            string
-	Msgch           chan *nats.Msg
-	ValueRegs       []string
-	ColDicts        []string
-	CountMsg        int64
-	CountMatchRegex int64
-	CountMatchDict  int64
+	Name            string         `json:"name"`
+	Msgch           chan *nats.Msg `json:"-"`
+	ValueRegs       []string       `json:"-"`
+	ColDicts        []string       `json:"-"`
+	CountMsg        int64          `json:"count_msg"`
+	CountMatchRegex int64          `json:"count_matched_regex"`
+	CountMatchDict  int64          `json:"count_matched_dict"`
 
 	rs   []*re2.Regexp
 	trie *ahocorasick.Trie
@@ -48,21 +50,28 @@ func (p *Worker) Run() {
 		// log.Debugf(m.Size(), len(m.Data))
 
 		// 依次匹配正则表达式
-		for i, r := range p.rs {
+		for _, r := range p.rs {
 			loc := r.FindIndex(m.Data)
-			if len(loc) > 0 {
-				log.Debugf("regex find rule %d with position %v", i, loc)
+			if loc != nil {
+				// log.Debugf("regex find rule %d with position %v", i, loc)
 				p.CountMatchRegex++
 			}
 		}
 
 		// 一次多模式匹配Dictionary
 		matches := p.trie.Match(m.Data)
-		p.CountMatchDict += int64(len(matches))
+		if len(matches) > 0 {
+			p.CountMatchDict += int64(len(matches))
+		}
 
 		if p.CountMsg%1000 == 0 {
-			log.Infof("worker [%s] count: %d, matched value regex count %d, matched column dict count %d",
+			log.Debugf("worker [%s] msgs: %d, value regex matched %d, column dict matched %d",
 				p.Name, p.CountMsg, p.CountMatchRegex, p.CountMatchDict)
 		}
 	}
+}
+
+func (p *Worker) Dump() []byte {
+	b, _ := json.Marshal(p)
+	return b
 }

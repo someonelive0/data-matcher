@@ -74,9 +74,9 @@ func main() {
 	}
 
 	// run workers
-	var workers []matcher.Worker = make([]matcher.Worker, 0)
+	var workers []*matcher.Worker = make([]*matcher.Worker, 0)
 	for i := 0; i < myconfig.Workers; i++ {
-		worker := matcher.Worker{
+		worker := &matcher.Worker{
 			Name:      strconv.Itoa(i),
 			Msgch:     msgch,
 			ValueRegs: regs,
@@ -98,12 +98,14 @@ func main() {
 		}(i)
 	}
 
-	// run api interface
+	// run manage api
 	var myapi = matcher.ManageApi{
 		RestapiHandler: utils.RestapiHandler{Name: "data-matcher", Runtime: START_TIME},
 		Port:           myconfig.ManagePort,
 		Config:         myconfig,
 		MsgChan:        msgch,
+		Inputer:        &inputer,
+		Workers:        workers,
 		Myerrors:       myerrors,
 	}
 	wg.Add(1)
