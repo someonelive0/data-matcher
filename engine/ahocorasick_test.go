@@ -3,7 +3,6 @@ package engine
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
@@ -148,7 +147,7 @@ func TestConfig(t *testing.T) {
 		panic(err)
 	}
 
-	inputBytes, err := ioutil.ReadFile("test_data/document.txt")
+	inputBytes, err := os.ReadFile("test_data/document.txt")
 	if err != nil {
 		panic(err)
 	}
