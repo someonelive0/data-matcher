@@ -18,18 +18,18 @@ func (p *Inputer) Run(msgch chan *nats.Msg,
 
 	nc, err := utils.NatsConnect(arg_server, arg_user, arg_password)
 	if err != nil {
-		log.Errorf("Inputer NatsConnect failed: %s", err)
+		log.Errorf("inputer NatsConnect failed: %s", err)
 		return err
 	}
-	log.Infof("connect %s success by user %s\n", arg_server, arg_user)
+	log.Infof("inputer connect %s success by user %s", arg_server, arg_user)
 
 	sub, err := utils.QueueSub2Chan(nc, arg_subject, arg_queue, msgch)
 	if err != nil {
-		log.Errorf("Inputer QueueSub2Chan failed: %s", err)
+		log.Errorf("inputer QueueSub2Chan failed: %s", err)
 		nc.Close()
 		return err
 	}
-	log.Infof("Inputer sub %s success with queue %s\n", arg_subject, arg_queue)
+	log.Infof("inputer sub %s success with queue %s", arg_subject, arg_queue)
 
 	p.nc = nc
 	p.sub = sub

@@ -12,6 +12,10 @@ channel_size: 1000000
 # 并行处理的工作协程数量，默认8个，实际情况应该根据CPU数量来.如果配置为0，则读取CPU数量然后减一。如果超过CPU数量，则配置为CPU数量然后减一
 workers: 8
 
+# 规则配置
+rules_file: rules.yaml
+
+
 # nats 服务配置
 nats:
     servers:

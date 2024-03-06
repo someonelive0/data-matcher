@@ -1,30 +1,68 @@
 package matcher
 
 import (
+	ahocorasick "github.com/BobuSumisu/aho-corasick"
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
 	"github.com/wasilibs/go-re2"
 )
 
-func Worker(name string, msgch chan *nats.Msg) {
-	log.Infof("worker running with name %s", name)
-	// rx := `@`
-	rx := `((((((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?)|((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)))|(\b[0-9A-Za-z][0-9A-Za-z-]{0,62}(?:\.[0-9A-Za-z][0-9A-Za-z-]{0,62})*(\.?|\b))) )?(((((([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}))|:)))(%.+)?)|((?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)))|(\b[0-9A-Za-z][0-9A-Za-z-]{0,62}(?:\.[0-9A-Za-z][0-9A-Za-z-]{0,62})*(\.?|\b))) - ((([a-zA-Z\.\@\-\+_%]+)))? \[(((?:0[1-9])|(?:[12][0-9])|(?:3[01])|[1-9])/(\bJan(?:uary|uar)?|Feb(?:ruary|ruar)?|M(?:a|ä)?r(?:ch|z)?|Apr(?:il)?|Ma(?:y|i)?|Jun(?:e|i)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|O(?:c|k)?t(?:ober)?|Nov(?:ember)?|De(?:c|z)(?:ember)?\b)/((?:\d\d){1,2}):((2[0123]|[01]?[0-9]):([0-5][0-9]):((?:[0-5]?[0-9]|60)(?:[:.,][0-9]+)?)) ([+-]?(?:[0-9]+)))\] "(\b\w+\b) (.*?) HTTP/(([+-]?(?:(?:[0-9]+(?:\.[0-9]+)?)|(?:\.[0-9]+))))" (([+-]?(?:(?:[0-9]+(?:\.[0-9]+)?)|(?:\.[0-9]+)))) (([+-]?(?:(?:[0-9]+(?:\.[0-9]+)?)|(?:\.[0-9]+)))) "([^"]*)" "([^"]*)"( (([+-]?(?:(?:[0-9]+(?:\.[0-9]+)?)|(?:\.[0-9]+)))) (([+-]?(?:(?:[0-9]+(?:\.[0-9]+)?)|(?:\.[0-9]+)))) \[(.*?)\] \[(.*?)\])?`
-	r := re2.MustCompile(rx)
+type Worker struct {
+	Name            string
+	Msgch           chan *nats.Msg
+	ValueRegs       []string
+	ColDicts        []string
+	CountMsg        int64
+	CountMatchRegex int64
+	CountMatchDict  int64
 
-	count := 0
-	for m := range msgch {
-		count++
-		// println(m.Size(), len(m.Data))
+	rs   []*re2.Regexp
+	trie *ahocorasick.Trie
+}
 
-		// 假设每个包匹配100次
-		for i := 0; i < 100; i++ {
-			r.FindIndex(m.Data)
+func (p *Worker) Init() error {
+	p.rs = make([]*re2.Regexp, 0)
+	for _, reg := range p.ValueRegs {
+		r, err := re2.Compile(reg)
+		if err != nil {
+			return err
+		}
+		p.rs = append(p.rs, r)
+	}
+
+	p.trie = ahocorasick.NewTrieBuilder().AddStrings(p.ColDicts).Build()
+	// log.Debugf("worker [%s] init value regexs %d, column dicts %d", p.Name, len(p.ValueRegs), len(p.ColDicts))
+
+	return nil
+}
+
+func (p *Worker) Run() {
+	log.Infof("worker running with name [%s], value regexs %d, column dicts %d",
+		p.Name, len(p.ValueRegs), len(p.ColDicts))
+	p.CountMsg = 0
+	p.CountMatchRegex = 0
+	p.CountMatchDict = 0
+
+	for m := range p.Msgch {
+		p.CountMsg++
+		// log.Debugf(m.Size(), len(m.Data))
+
+		// 依次匹配正则表达式
+		for i, r := range p.rs {
+			loc := r.FindIndex(m.Data)
+			if len(loc) > 0 {
+				log.Debugf("regex find rule %d with position %v", i, loc)
+				p.CountMatchRegex++
+			}
 		}
 
-		if count%1000 == 0 {
-			println(m.Size(), m.Header, len(m.Data))
-			log.Infof("worker %s count: %d, find index %v", name, count, 0)
+		// 一次多模式匹配Dictionary
+		matches := p.trie.Match(m.Data)
+		p.CountMatchDict += int64(len(matches))
+
+		if p.CountMsg%1000 == 0 {
+			log.Infof("worker [%s] count: %d, matched value regex count %d, matched column dict count %d",
+				p.Name, p.CountMsg, p.CountMatchRegex, p.CountMatchDict)
 		}
 	}
 }

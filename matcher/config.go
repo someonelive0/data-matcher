@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 	"runtime"
 	"time"
 
@@ -32,6 +33,7 @@ type MyConfig struct {
 	ManagePort  int    `yaml:"manage_port" json:"manage_port" `
 	ChannelSize int    `yaml:"channel_size" json:"channel_size"`
 	Workers     int    `yaml:"workers" json:"workers"`
+	RulesFile   string `yaml:"rules_file" json:"rules_file"`
 
 	NatsConfig NatsConfig `yaml:"nats"`
 	HttpFlow   HttpFlow   `yaml:"http_flow"`
@@ -71,6 +73,9 @@ func LoadConfig(filename string) (*MyConfig, error) {
 			myconfig.Workers = cpus - 1
 		}
 	}
+
+	// 补上rules_file的路径
+	myconfig.RulesFile = path.Dir(myconfig.Filename) + "/" + myconfig.RulesFile
 
 	return myconfig, nil
 }

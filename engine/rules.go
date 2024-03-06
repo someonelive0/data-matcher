@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"gopkg.in/yaml.v3"
+
+	"data-matcher/utils"
 )
 
 type MaskRuleItem struct {
@@ -63,6 +65,11 @@ type RulesConfig struct {
 
 // newDlpConfImpl implements newDlpConf by receving conf content string
 func NewRulesConfig(filename string) (*RulesConfig, error) {
+	// 都配置文件，如果文件不存在则从模块文件tpl复制成配置文件。思路是考虑到不覆盖已有现场配置文件。
+	if !utils.ExistedOrCopy(filename, filename+".tpl") {
+		return nil, fmt.Errorf("config file [%s] or template file are not found", filename)
+	}
+
 	bs, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err

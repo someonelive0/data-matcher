@@ -36,7 +36,9 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 		nats.ReconnectBufSize(50*1024*1024),
 		nats.DisconnectErrHandler(func(nc *nats.Conn, err error) {
 			// handle disconnect error event
-			log.Errorf("nats DisconnectErrHandler client disconnected: %v\n", err)
+			if err != nil {
+				log.Errorf("nats DisconnectErrHandler client disconnected: %v", err)
+			}
 		}),
 		nats.ReconnectHandler(func(nc *nats.Conn) {
 			// handle reconnect event
@@ -83,7 +85,7 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 			return "Other"
 		}
 	}
-	log.Debugf("nats connection is %v\n", getStatusTxt(nc))
+	log.Debugf("nats connection status is %v", getStatusTxt(nc))
 
 	return nc, nil
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
 
+	"data-matcher/engine"
 	"data-matcher/matcher"
 	"data-matcher/utils"
 )
@@ -51,6 +52,18 @@ func main() {
 	}
 	log.Infof("myconfig: %s", myconfig.Dump())
 
+	// load rules
+	rulesConf, err := engine.NewRulesConfig(myconfig.RulesFile)
+	if err != nil {
+		log.Errorf("load rules config [%s] error %s", myconfig.RulesFile, err)
+		os.Exit(1)
+	}
+	regs := rulesConf.GetValueReg()
+	log.Infof("load value regex in rules config number %d", len(regs))
+	dicts := rulesConf.GetColDict()
+	log.Infof("load column dicts in rules config number %d", len(dicts))
+
+	// run inputer, receive nats msg to channel
 	runok := true // Exit when run is not ok
 	msgch := make(chan *nats.Msg, myconfig.ChannelSize)
 	var inputer = matcher.Inputer{}
@@ -61,13 +74,28 @@ func main() {
 	}
 
 	// run workers
+	var workers []matcher.Worker = make([]matcher.Worker, 0)
+	for i := 0; i < myconfig.Workers; i++ {
+		worker := matcher.Worker{
+			Name:      strconv.Itoa(i),
+			Msgch:     msgch,
+			ValueRegs: regs,
+			ColDicts:  dicts,
+		}
+		if err = worker.Init(); err != nil {
+			log.Errorf("worker init failed %s", err)
+			return
+		}
+		workers = append(workers, worker)
+	}
+
 	var wg sync.WaitGroup
 	for i := 0; i < myconfig.Workers; i++ {
 		wg.Add(1)
-		go func(name string) {
+		go func(i int) {
 			defer wg.Done()
-			matcher.Worker(name, msgch)
-		}(strconv.Itoa(i))
+			workers[i].Run()
+		}(i)
 	}
 
 	// run api interface
