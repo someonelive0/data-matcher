@@ -25,5 +25,8 @@ nats:
     queue_name: data-matcher
 
 http_flow:
-    subject: httpTopic
+    subject: flow.http
 
+
+# 调试
+statsviz: false

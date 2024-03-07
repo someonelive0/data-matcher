@@ -37,6 +37,8 @@ type MyConfig struct {
 
 	NatsConfig NatsConfig `yaml:"nats"`
 	HttpFlow   HttpFlow   `yaml:"http_flow"`
+
+	Statsviz bool `yaml:"statsviz"`
 }
 
 func (p *MyConfig) Dump() []byte {

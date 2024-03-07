@@ -26,11 +26,11 @@ nats:
 # 读Kafka消息，写入nats
 kakfa2nats:
     topic: httpTopic
-    subject: httpTopic
+    subject: flow.http
     jetstream: false
 
 # 读nats消息，写入kafka
 nats2kafka:
     subject: matchTopic
     jetstream: true
-    topic: matchTopic
+    topic: flow.matched

@@ -71,11 +71,13 @@ func (p *ManageApi) Run() error {
 	r.HandleFunc("/policy/{title:[a-z0-9_\\-]+}", p.policyHandler).Methods("GET")
 
 	// add statsviz
-	go example.Work()
-	// Create statsviz server and register the handlers on the router.
-	srv, _ := statsviz.NewServer()
-	r.Methods("GET").Path("/debug/statsviz/ws").Name("GET /debug/statsviz/ws").HandlerFunc(srv.Ws())
-	r.Methods("GET").PathPrefix("/debug/statsviz/").Name("GET /debug/statsviz/").Handler(basicAuth(srv.Index(), "idss", "idss2024", ""))
+	if p.Config.Statsviz {
+		go example.Work()
+		// Create statsviz server and register the handlers on the router.
+		srv, _ := statsviz.NewServer()
+		r.Methods("GET").Path("/debug/statsviz/ws").Name("GET /debug/statsviz/ws").HandlerFunc(srv.Ws())
+		r.Methods("GET").PathPrefix("/debug/statsviz/").Name("GET /debug/statsviz/").Handler(basicAuth(srv.Index(), "idss", "idss2024", ""))
+	}
 
 	p.server = &http.Server{
 		Addr:         localaddr,
