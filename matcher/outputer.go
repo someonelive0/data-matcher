@@ -45,7 +45,8 @@ func (p *Outputer) Run() error {
 	for m := range p.Outch {
 		p.CountMsg++
 
-		_, err = js.Publish("match_"+m.Subject, m.Data)
+		// _, err = js.Publish("match_"+m.Subject, m.Data) // 同步发布
+		_, err = js.PublishAsync("match_"+m.Subject, m.Data) // 异步发布
 		if err != nil {
 			p.CountFailed++
 			log.Errorf("ouputer jetstream pub failed: %s", err)

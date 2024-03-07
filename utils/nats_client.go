@@ -117,11 +117,25 @@ func NatsCreateStream(js nats.JetStreamContext, stream_name, stream_subjects str
 
 	// stream not found, create it
 	if err != nil || stream == nil {
-		log.Printf("Creating stream: %s\n", stream_name)
+		log.Infof("nats creating stream that is not existed, %s", stream_name)
 
 		_, err = js.AddStream(&nats.StreamConfig{
-			Name:     stream_name,
-			Subjects: []string{stream_subjects},
+			Name:              stream_name,
+			Subjects:          []string{stream_subjects},
+			Storage:           nats.FileStorage,
+			Replicas:          1,
+			Retention:         nats.LimitsPolicy,
+			Discard:           nats.DiscardOld,
+			MaxAge:            time.Duration(30 * 24 * time.Hour), // 30d
+			MaxBytes:          10 * 1024 * 1024 * 1024,            // 10GiB
+			MaxMsgSize:        1024 * 1024,                        // 1MiB
+			MaxMsgs:           -1,
+			MaxMsgsPerSubject: -1,
+			Duplicates:        time.Duration(120 * time.Second),
+			AllowRollup:       false,
+			AllowDirect:       true,
+			DenyDelete:        false,
+			DenyPurge:         false,
 		})
 		if err != nil {
 			return err

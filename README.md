@@ -24,8 +24,8 @@
   --replicas=1 \
   --retention=limits \
   --discard=old \
-  --max-age=90d \
-  --max-bytes=2GiB \
+  --max-age=30d \
+  --max-bytes=10GiB \
   --max-msg-size=1MiB \
   --max-msgs=-1 \
   --max-msgs-per-subject=-1 \
