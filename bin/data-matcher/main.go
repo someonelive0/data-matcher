@@ -129,6 +129,8 @@ func main() {
 		Inputer:        &inputer,
 		Outputer:       &outputer,
 		Workers:        workers,
+		ValueRegs:      regs,
+		ColDicts:       dicts,
 		Myerrors:       myerrors,
 	}
 	wg.Add(1)

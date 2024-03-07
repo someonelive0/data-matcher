@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 
 	"data-matcher/utils"
@@ -22,18 +23,9 @@ func (p *ManageApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	s += fmt.Sprintf(`, "outputer": %s`, p.Outputer.Dump())
 	b, _ := json.Marshal(p.Workers)
 	s += fmt.Sprintf(`, "worker": %s`, b)
-
-	// s += `"policy": {`
-	// s += fmt.Sprintf(`"user_policy": { "number": %d, "matched": %d }, `,
-	// 	p.Usercache.Number, p.Usercache.Matched)
-	// s += fmt.Sprintf(`"account_policy": { "number": %d, "matched": %d }, `,
-	// 	p.Accountcache.Number, p.Accountcache.Matched)
-	// s += fmt.Sprintf(`"asset_policy": { "number": %d, "matched": %d }, `,
-	// 	p.Assetpolicy.Number, p.Assetpolicy.Matched)
-	// s += fmt.Sprintf(`"auth_policy": { "number": %d, "matched": %d }, `,
-	// 	p.Authcache.Number, p.Authcache.Matched)
-	// s += fmt.Sprintf(`"sysdev_policy": { "number": %d, "matched": %d } }, `,
-	// 	p.Sysdevcache.Number, p.Sysdevcache.Matched)
+	s += `, "rule": {`
+	s += fmt.Sprintf(`"value_regex": { "number": %d, "matched": %d }, `, len(p.ValueRegs), 0)
+	s += fmt.Sprintf(`"column_dict": { "number": %d, "matched": %d } }`, len(p.ColDicts), 0)
 	s += "}"
 	fmt.Fprint(w, s)
 }
@@ -89,39 +81,26 @@ func (p *ManageApi) configItemHandler(w http.ResponseWriter, r *http.Request) {
 	// }
 }
 
-func (p *ManageApi) policyHandler(w http.ResponseWriter, r *http.Request) {
-	//vars := mux.Vars(r)
+func (p *ManageApi) ruleHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 	w.WriteHeader(http.StatusOK)
 
-	// if title, ok := vars["title"]; ok {
-	// 	if title == "user" {
-	// 		jsonb, _ := json.MarshalIndent(p.Usercache, "", " ")
-	// 		w.Write(jsonb)
-	// 	} else if title == "account" {
-	// 		jsonb, _ := json.MarshalIndent(p.Accountcache, "", " ")
-	// 		w.Write(jsonb)
-	// 	} else if title == "asset" {
-	// 		jsonb, _ := json.MarshalIndent(p.Assetpolicy, "", " ")
-	// 		w.Write(jsonb)
-	// 	} else if title == "auth" {
-	// 		jsonb, _ := json.MarshalIndent(p.Authcache, "", " ")
-	// 		w.Write(jsonb)
-	// 	} else if title == "sysdev" {
-	// 		jsonb, _ := json.MarshalIndent(p.Sysdevcache, "", " ")
-	// 		w.Write(jsonb)
-	// 	} else if title == "holiday" {
-	// 		w.Write(p.Holidaypolicy.Dump())
-	// 		// w.Write(p.Holidaypolicy.DumpHoliday())
-	// 		// w.Write(p.Holidaypolicy.DumpWorktime())
-	// 	} else {
-	// 		fmt.Fprintf(w, "wrong title: %s", title)
-	// 	}
-	// } else {
-	// 	fmt.Fprintf(w, "not set title")
-	// }
+	if title, ok := vars["title"]; ok {
+		if title == "value_regex" {
+			jsonb, _ := json.MarshalIndent(p.ValueRegs, "", " ")
+			w.Write(jsonb)
+		} else if title == "culumn_dict" {
+			jsonb, _ := json.MarshalIndent(p.ColDicts, "", " ")
+			w.Write(jsonb)
+		} else {
+			fmt.Fprintf(w, "wrong title: %s", title)
+		}
+	} else {
+		fmt.Fprintf(w, "not set title")
+	}
 }
 
-func (p *ManageApi) policyReloadHandler(w http.ResponseWriter, r *http.Request) {
+func (p *ManageApi) ruleReloadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info("ManageApi receive reload policy command")
 	w.WriteHeader(http.StatusOK)
 	// test uploaded gather policy file, that is etc/user.xml.upload

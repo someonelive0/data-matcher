@@ -14,6 +14,7 @@ import (
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
 
+	"data-matcher/engine"
 	"data-matcher/utils"
 )
 
@@ -21,15 +22,17 @@ type ManageApi struct {
 	utils.RestapiHandler
 
 	// Host       string
-	Port     int
-	Config   *MyConfig
-	Stats    *MyStatistic
-	Msgch    chan *nats.Msg
-	Outch    chan *nats.Msg
-	Inputer  *Inputer
-	Outputer *Outputer
-	Workers  []*Worker
-	Myerrors *utils.MyErrors
+	Port      int
+	Config    *MyConfig
+	Stats     *MyStatistic
+	Msgch     chan *nats.Msg
+	Outch     chan *nats.Msg
+	Inputer   *Inputer
+	Outputer  *Outputer
+	Workers   []*Worker
+	ValueRegs []*engine.ValueRegex
+	ColDicts  []*engine.ColDict
+	Myerrors  *utils.MyErrors
 
 	server *http.Server
 }
@@ -55,10 +58,10 @@ func (p *ManageApi) Run() error {
 	r.HandleFunc("/config/", p.configHandler).Methods("GET", "POST")
 	r.HandleFunc("/config/{title:[a-z0-9_\\-]+}", p.configItemHandler).Methods("GET", "POST")
 
-	r.HandleFunc("/policy", p.UploadHandler).Methods("POST")
-	r.HandleFunc("/policy", p.policyReloadHandler).Methods("PUT")
-	r.HandleFunc("/policy/", p.policyHandler).Methods("GET")
-	r.HandleFunc("/policy/{title:[a-z0-9_\\-]+}", p.policyHandler).Methods("GET")
+	r.HandleFunc("/rule", p.UploadHandler).Methods("POST")
+	r.HandleFunc("/rule", p.ruleReloadHandler).Methods("PUT")
+	r.HandleFunc("/rule/", p.ruleHandler).Methods("GET")
+	r.HandleFunc("/rule/{title:[a-z0-9_\\-]+}", p.ruleHandler).Methods("GET")
 
 	// add statsviz
 	if p.Config.Statsviz {

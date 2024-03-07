@@ -23,7 +23,7 @@ func HostDump() string {
 
 func HostLoading() string {
 	s := fmt.Sprintf(`{"timestamp": "%s", `, time.Now().Format(time.RFC3339))
-	s += fmt.Sprintf(`"measurement": "MiB", `)
+	s += `"measurement": "MiB", `
 	v, _ := mem.VirtualMemory()
 	s += fmt.Sprintf(`"mem_total": %v, `, B2MB(v.Total))
 	s += fmt.Sprintf(`"mem_available": %v, `, B2MB(v.Available))

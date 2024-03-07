@@ -86,24 +86,62 @@ func NewRulesConfig(filename string) (*RulesConfig, error) {
 	}
 }
 
-func (p *RulesConfig) GetValueReg() []string {
-	ss := make([]string, 0)
-	for _, rule := range p.Rules {
-		if len(rule.Detect.VReg) != 0 {
-			ss = append(ss, rule.Detect.VReg...)
-		}
-	}
-	return ss
+// 用于worker进行匹配值的正则表达式单项
+type ValueRegex struct {
+	Seq        int    `json:"seq"`
+	RuleID     int32  `json:"RuleID"`
+	InfoType   string `json:"InfoType"`
+	Level      string `json:"Level"`
+	VReg       string `json:"VReg"`
+	CountMatch uint64 `json:"CountMatch"`
 }
 
-func (p *RulesConfig) GetColDict() []string {
-	ss := make([]string, 0)
+// 用于worker进行匹配列名称的字典
+type ColDict struct {
+	Seq        int    `json:"seq"`
+	RuleID     int32  `json:"RuleID"`
+	InfoType   string `json:"InfoType"`
+	Level      string `json:"Level"`
+	CDict      string `json:"CDict"`
+	CountMatch uint64 `json:"CountMatch"`
+}
+
+func (p *RulesConfig) GetValueReg() []*ValueRegex {
+	vregs := make([]*ValueRegex, 0)
+	seq := 0
 	for _, rule := range p.Rules {
-		if len(rule.Verify.CDict) != 0 {
-			ss = append(ss, rule.Verify.CDict...)
+		for _, reg := range rule.Detect.VReg {
+			vreg := &ValueRegex{
+				Seq:      seq,
+				RuleID:   rule.RuleID,
+				InfoType: rule.InfoType,
+				Level:    rule.Level,
+				VReg:     reg,
+			}
+			vregs = append(vregs, vreg)
+			seq++
 		}
 	}
-	return ss
+	return vregs
+}
+
+func (p *RulesConfig) GetColDict() []*ColDict {
+	cdicts := make([]*ColDict, 0)
+	seq := 0
+	for _, rule := range p.Rules {
+		for _, dict := range rule.Verify.CDict {
+			cdict := &ColDict{
+				Seq:      seq,
+				RuleID:   rule.RuleID,
+				InfoType: rule.InfoType,
+				Level:    rule.Level,
+				CDict:    dict,
+			}
+			cdicts = append(cdicts, cdict)
+			seq++
+		}
+	}
+	return cdicts
 }
 
 var (
