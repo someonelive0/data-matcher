@@ -110,3 +110,23 @@ func NatsSendMsg(nc *nats.Conn, subject, msg string) error {
 
 	return nil
 }
+
+// 查看流信息，如果不存在就创建
+func NatsCreateStream(js nats.JetStreamContext, stream_name, stream_subjects string) error {
+	stream, err := js.StreamInfo(stream_name)
+
+	// stream not found, create it
+	if err != nil || stream == nil {
+		log.Printf("Creating stream: %s\n", stream_name)
+
+		_, err = js.AddStream(&nats.StreamConfig{
+			Name:     stream_name,
+			Subjects: []string{stream_subjects},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

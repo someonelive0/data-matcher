@@ -21,20 +21,14 @@ type ManageApi struct {
 	utils.RestapiHandler
 
 	// Host       string
-	Port   int
-	Config *MyConfig
-	Stats  *MyStatistic
-	// Usercache     *UserCache
-	// Accountcache  *AccountCache
-	// Assetpolicy   *AssetPolicy
-	// Authcache     *AuthCache
-	// Sysdevcache   *SysdevCache
-	// Holidaypolicy *HolidayPolicy
-	MsgChan chan *nats.Msg
-	Inputer *Inputer
-	Workers []*Worker
-	// Stlogoutput   *MylogOutput
-	// Apilogoutput  *MylogOutput
+	Port     int
+	Config   *MyConfig
+	Stats    *MyStatistic
+	Msgch    chan *nats.Msg
+	Outch    chan *nats.Msg
+	Inputer  *Inputer
+	Outputer *Outputer
+	Workers  []*Worker
 	Myerrors *utils.MyErrors
 
 	server *http.Server

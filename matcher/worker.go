@@ -12,6 +12,7 @@ import (
 type Worker struct {
 	Name            string         `json:"name"`
 	Msgch           chan *nats.Msg `json:"-"`
+	Outch           chan *nats.Msg `json:"-"`
 	ValueRegs       []string       `json:"-"`
 	ColDicts        []string       `json:"-"`
 	CountMsg        uint64         `json:"count_msg"`
@@ -45,8 +46,10 @@ func (p *Worker) Run() {
 	p.CountMatchRegex = 0
 	p.CountMatchDict = 0
 
+	var reg_matched, dict_magched = false, false
 	for m := range p.Msgch {
 		p.CountMsg++
+		reg_matched, dict_magched = false, false
 		// log.Debugf(m.Size(), len(m.Data))
 
 		// 依次匹配正则表达式
@@ -55,6 +58,7 @@ func (p *Worker) Run() {
 			if loc != nil {
 				// log.Debugf("regex find rule %d with position %v", i, loc)
 				p.CountMatchRegex++
+				reg_matched = true
 			}
 		}
 
@@ -62,6 +66,12 @@ func (p *Worker) Run() {
 		matches := p.trie.Match(m.Data)
 		if len(matches) > 0 {
 			p.CountMatchDict += uint64(len(matches))
+			dict_magched = true
+		}
+
+		// 如果匹配到了正则或字典，写入输出队列
+		if reg_matched || dict_magched {
+			p.Outch <- m
 		}
 
 		if p.CountMsg%1000 == 0 {

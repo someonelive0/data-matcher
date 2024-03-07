@@ -65,6 +65,7 @@ func main() {
 	// run inputer, receive nats msg to channel
 	runok := true // Exit when run is not ok
 	var msgch = make(chan *nats.Msg, myconfig.ChannelSize)
+	var outch = make(chan *nats.Msg, myconfig.ChannelSize)
 	var stats = matcher.NewMyStatistic(START_TIME)
 	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer
 		Msgch:      msgch,
@@ -72,10 +73,25 @@ func main() {
 		HttpFlow:   &myconfig.HttpFlow,
 		Stats:      stats,
 	}
-	err = inputer.Run()
-	if err != nil {
+	if err = inputer.Run(); err != nil {
 		return
 	}
+
+	// run outputer
+	var wg sync.WaitGroup
+	var outputer = matcher.Outputer{
+		Outch:       outch,
+		NatsConfig:  &myconfig.NatsConfig,
+		HttpOutFlow: &myconfig.HttpFlow,
+		Stats:       stats,
+	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err = outputer.Run(); err != nil {
+			runok = false
+		}
+	}()
 
 	// run workers
 	var workers []*matcher.Worker = make([]*matcher.Worker, 0)
@@ -83,6 +99,7 @@ func main() {
 		worker := &matcher.Worker{
 			Name:      strconv.Itoa(i),
 			Msgch:     msgch,
+			Outch:     outch,
 			ValueRegs: regs,
 			ColDicts:  dicts,
 		}
@@ -93,7 +110,6 @@ func main() {
 		workers = append(workers, worker)
 	}
 
-	var wg sync.WaitGroup
 	for i := 0; i < myconfig.Workers; i++ {
 		wg.Add(1)
 		go func(i int) {
@@ -108,15 +124,17 @@ func main() {
 		Port:           myconfig.ManagePort,
 		Config:         myconfig,
 		Stats:          stats,
-		MsgChan:        msgch,
+		Msgch:          msgch,
+		Outch:          outch,
 		Inputer:        &inputer,
+		Outputer:       &outputer,
 		Workers:        workers,
 		Myerrors:       myerrors,
 	}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := myapi.Run(); err != nil {
+		if err = myapi.Run(); err != nil {
 			runok = false
 		}
 	}()
@@ -134,11 +152,11 @@ func main() {
 		close(signchan)
 
 		inputer.Stop()
-		// stlogOutput.Stop()
-		// apilogOutput.Stop()
+		close(msgch)
+		close(outch)
+		outputer.Stop()
 		// waitChanEmpty(chan_stlog_0, chan_stlog_1)
 		myapi.Stop()
-		close(msgch)
 		wg.Wait() // Wait workers
 	}
 

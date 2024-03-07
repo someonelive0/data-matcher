@@ -16,18 +16,13 @@ func (p *ManageApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	s := fmt.Sprintf(`{"run_time": "%s", "pid": %d`, p.Runtime.Format(time.RFC3339), os.Getpid())
 	s += fmt.Sprintf(`, "process_mem": %s`, utils.ProcessMem())
-	s += fmt.Sprintf(`, "channel": {"msg_channel": {"len": %d, "cap": %d} }`, len(p.MsgChan), cap(p.MsgChan))
+	s += fmt.Sprintf(`, "channel": {"msg_channel": {"len": %d, "cap": %d}`, len(p.Msgch), cap(p.Msgch))
+	s += fmt.Sprintf(`, "out_channel": {"len": %d, "cap": %d} }`, len(p.Outch), cap(p.Outch))
 	s += fmt.Sprintf(`, "inputer": %s`, p.Inputer.Dump())
+	s += fmt.Sprintf(`, "outputer": %s`, p.Outputer.Dump())
 	b, _ := json.Marshal(p.Workers)
 	s += fmt.Sprintf(`, "worker": %s`, b)
-	// s += fmt.Sprintf(`"standard_log_output": {"count": %d, "success": %d, "failed": %d, "partition": %d, "offset": %d, "topics": "%s"}, `,
-	// 	p.Stlogoutput.Count, p.Stlogoutput.success, p.Stlogoutput.failed,
-	// 	p.Stlogoutput.Topicpartition, p.Stlogoutput.Topicoffset, p.Stlogoutput.Topics)
-	// s += fmt.Sprintf(`"standard_log_faildisk": %s, `, p.Stlogoutput.faildisk.Dump())
-	// s += fmt.Sprintf(`"api_log_output": {"count": %d, "success": %d, "failed": %d, "partition": %d, "offset": %d, "topics": "%s"}, `,
-	// 	p.Apilogoutput.Count, p.Apilogoutput.success, p.Apilogoutput.failed,
-	// 	p.Apilogoutput.Topicpartition, p.Apilogoutput.Topicoffset, p.Apilogoutput.Topics)
-	// s += fmt.Sprintf(`"api_log_faildisk": %s, `, p.Apilogoutput.faildisk.Dump())
+
 	// s += `"policy": {`
 	// s += fmt.Sprintf(`"user_policy": { "number": %d, "matched": %d }, `,
 	// 	p.Usercache.Number, p.Usercache.Matched)
