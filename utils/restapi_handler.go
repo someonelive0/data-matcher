@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -51,7 +50,7 @@ func (p *RestapiHandler) DebugHandler(w http.ResponseWriter, r *http.Request) {
 func (p *RestapiHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	s := fmt.Sprintf(`{"app": "%s", `, p.Name)
-	claims, ok := r.Context().Value("claims").(*MyClaims)
+	claims, ok := r.Context().Value(ContextKeyRequestID).(*MyClaims)
 	if ok && claims != nil {
 		b, _ := json.Marshal(claims)
 		s += fmt.Sprintf(`"jwt": %s, `, b)
@@ -101,7 +100,7 @@ func (p *RestapiHandler) UploadHandler(w http.ResponseWriter, r *http.Request) {
 
 		//fmt.Printf("FileName=[%s], FormName=[%s]\n", part.FileName(), part.FormName())
 		if part.FileName() == "" { // this is FormData
-			data, _ := ioutil.ReadAll(part)
+			data, _ := io.ReadAll(part)
 			log.Debugf("  formdata: [%s]=[%s]\n", part.FormName(), string(data))
 		} else { // This is FileData
 			filename := "./etc/" + path.Base(part.FileName()) + ".upload.tmp"
@@ -140,6 +139,12 @@ func (p *RestapiHandler) UploadHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // JWT auth middleware for http router
+// Context 类型保存 KV 对时, key 不能使用原生类型，而应该使用派生类型。
+// 所以采用 ContextKeyRequestID 作为 context 的key, 而不是原来原生的字符串。
+type ContextKey int
+
+const ContextKeyRequestID ContextKey = iota
+
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -156,7 +161,8 @@ func AuthMiddleware(next http.Handler) http.Handler {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("Unauthorized"))
 			} else {
-				ctx := context.WithValue(r.Context(), "claims", claims)
+				ctx := context.WithValue(r.Context(), ContextKeyRequestID, claims)
+				// ctx := context.WithValue(r.Context(), "claims", claims)
 				//log.Debug(claims)
 				// Access context values in handlers like this
 				//props, _ := r.Context().Value("claims").(*MyClaims)

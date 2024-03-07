@@ -127,10 +127,7 @@ func myAuthMiddleware(next http.Handler) http.Handler {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("Unauthorized"))
 			} else {
-				ctx := context.WithValue(r.Context(), "claims", claims)
-				//log.Debug(claims)
-				// Access context values in handlers like this
-				//props, _ := r.Context().Value("claims").(*MyClaims)
+				ctx := context.WithValue(r.Context(), utils.ContextKeyRequestID, claims)
 				next.ServeHTTP(w, r.WithContext(ctx))
 			}
 		}
