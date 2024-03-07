@@ -14,14 +14,14 @@ import (
 )
 
 type NatsConfig struct {
-	Servers   []string `yaml:"servers"`
-	User      string   `yaml:"user"`
-	Password  string   `yaml:"password" json:"-"`
-	QueueName string   `yaml:"queue_name"`
+	Servers  []string `yaml:"servers"`
+	User     string   `yaml:"user"`
+	Password string   `yaml:"password" json:"-"`
 }
 
-type HttpFlow struct {
-	Subject string `yaml:"subject"`
+type Flow struct {
+	QueueName string `yaml:"queue_name"`
+	Subject   string `yaml:"subject"`
 }
 
 type MyConfig struct {
@@ -36,7 +36,7 @@ type MyConfig struct {
 	RulesFile   string `yaml:"rules_file" json:"rules_file"`
 
 	NatsConfig NatsConfig `yaml:"nats"`
-	HttpFlow   HttpFlow   `yaml:"http_flow"`
+	HttpFlow   Flow       `yaml:"http_flow"`
 
 	Statsviz bool `yaml:"statsviz"`
 }

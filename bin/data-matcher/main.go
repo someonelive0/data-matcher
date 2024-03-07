@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -67,9 +66,13 @@ func main() {
 	runok := true // Exit when run is not ok
 	var msgch = make(chan *nats.Msg, myconfig.ChannelSize)
 	var stats = matcher.NewMyStatistic(START_TIME)
-	var inputer = matcher.Inputer{Stats: stats}
-	err = inputer.Run(msgch, strings.Join(myconfig.NatsConfig.Servers, ","),
-		myconfig.NatsConfig.User, myconfig.NatsConfig.Password, myconfig.HttpFlow.Subject, myconfig.NatsConfig.QueueName)
+	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer
+		Msgch:      msgch,
+		NatsConfig: &myconfig.NatsConfig,
+		HttpFlow:   &myconfig.HttpFlow,
+		Stats:      stats,
+	}
+	err = inputer.Run()
 	if err != nil {
 		return
 	}

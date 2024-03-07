@@ -22,9 +22,9 @@ nats:
         - nats://localhost:4222
     user: user
     password: passwd
-    queue_name: data-matcher
 
 http_flow:
+    queue_name: data-matcher
     subject: flow.http
 
 

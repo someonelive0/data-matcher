@@ -2,6 +2,7 @@ package matcher
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
@@ -10,27 +11,30 @@ import (
 )
 
 type Inputer struct {
-	CountMsg uint64       `json:"count_msg"`
-	Stats    *MyStatistic `json:"-"`
+	Msgch      chan *nats.Msg `json:"-"`
+	NatsConfig *NatsConfig    `json:"-"`
+	HttpFlow   *Flow          `json:"-"`
+	Stats      *MyStatistic   `json:"-"`
+	CountMsg   uint64         `json:"count_msg"`
 
 	nc  *nats.Conn
 	sub *nats.Subscription
 }
 
-// async to receive messages
-func (p *Inputer) Run(msgch chan *nats.Msg,
-	arg_server, arg_user, arg_password, arg_subject, arg_queue string) error {
-
-	nc, err := utils.NatsConnect(arg_server, arg_user, arg_password)
+// async to receive messages from a flow
+// 考虑一个流对应一个inputer，即main中如有多个flow要输入，则建立多个inputer
+func (p *Inputer) Run() error {
+	servers := strings.Join(p.NatsConfig.Servers, ",")
+	nc, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password)
 	if err != nil {
-		log.Errorf("inputer NatsConnect failed: %s", err)
+		log.Errorf("inputer NatsConnect %s failed: %s", servers, err)
 		return err
 	}
-	log.Infof("inputer connect %s success by user %s", arg_server, arg_user)
+	log.Infof("inputer connect %s success by user %s", servers, p.NatsConfig.User)
 
 	// sub, err := utils.QueueSub2Chan(nc, arg_subject, arg_queue, msgch)
-	sub, err := nc.QueueSubscribe(arg_subject, arg_queue, func(m *nats.Msg) {
-		msgch <- m
+	sub, err := nc.QueueSubscribe(p.HttpFlow.Subject, p.HttpFlow.QueueName, func(m *nats.Msg) {
+		p.Msgch <- m
 		p.CountMsg++
 		p.Stats.InputCount(1)
 	})
@@ -39,7 +43,7 @@ func (p *Inputer) Run(msgch chan *nats.Msg,
 		nc.Close()
 		return err
 	}
-	log.Infof("inputer sub %s success with queue %s", arg_subject, arg_queue)
+	log.Infof("inputer sub %s success with queue %s", p.HttpFlow.Subject, p.HttpFlow.QueueName)
 
 	p.nc = nc
 	p.sub = sub
