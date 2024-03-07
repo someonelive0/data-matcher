@@ -65,8 +65,9 @@ func main() {
 
 	// run inputer, receive nats msg to channel
 	runok := true // Exit when run is not ok
-	msgch := make(chan *nats.Msg, myconfig.ChannelSize)
-	var inputer = matcher.Inputer{}
+	var msgch = make(chan *nats.Msg, myconfig.ChannelSize)
+	var stats = matcher.NewMyStatistic(START_TIME)
+	var inputer = matcher.Inputer{Stats: stats}
 	err = inputer.Run(msgch, strings.Join(myconfig.NatsConfig.Servers, ","),
 		myconfig.NatsConfig.User, myconfig.NatsConfig.Password, myconfig.HttpFlow.Subject, myconfig.NatsConfig.QueueName)
 	if err != nil {
@@ -103,6 +104,7 @@ func main() {
 		RestapiHandler: utils.RestapiHandler{Name: "data-matcher", Runtime: START_TIME},
 		Port:           myconfig.ManagePort,
 		Config:         myconfig,
+		Stats:          stats,
 		MsgChan:        msgch,
 		Inputer:        &inputer,
 		Workers:        workers,

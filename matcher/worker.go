@@ -14,9 +14,9 @@ type Worker struct {
 	Msgch           chan *nats.Msg `json:"-"`
 	ValueRegs       []string       `json:"-"`
 	ColDicts        []string       `json:"-"`
-	CountMsg        int64          `json:"count_msg"`
-	CountMatchRegex int64          `json:"count_matched_regex"`
-	CountMatchDict  int64          `json:"count_matched_dict"`
+	CountMsg        uint64         `json:"count_msg"`
+	CountMatchRegex uint64         `json:"count_matched_regex"`
+	CountMatchDict  uint64         `json:"count_matched_dict"`
 
 	rs   []*re2.Regexp
 	trie *ahocorasick.Trie
@@ -61,7 +61,7 @@ func (p *Worker) Run() {
 		// 一次多模式匹配Dictionary
 		matches := p.trie.Match(m.Data)
 		if len(matches) > 0 {
-			p.CountMatchDict += int64(len(matches))
+			p.CountMatchDict += uint64(len(matches))
 		}
 
 		if p.CountMsg%1000 == 0 {

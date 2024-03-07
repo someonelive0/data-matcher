@@ -23,8 +23,7 @@ type ManageApi struct {
 	// Host       string
 	Port   int
 	Config *MyConfig
-	// Stats_stlog   *CompleteStatistic
-	// Stats_apilog  *CompleteStatistic
+	Stats  *MyStatistic
 	// Usercache     *UserCache
 	// Accountcache  *AccountCache
 	// Assetpolicy   *AssetPolicy
@@ -32,9 +31,6 @@ type ManageApi struct {
 	// Sysdevcache   *SysdevCache
 	// Holidaypolicy *HolidayPolicy
 	MsgChan chan *nats.Msg
-	// Chan_stlog_1  chan interface{}
-	// Chan_apilog_0 chan interface{}
-	// Chan_apilog_1 chan interface{}
 	Inputer *Inputer
 	Workers []*Worker
 	// Stlogoutput   *MylogOutput
@@ -72,6 +68,7 @@ func (p *ManageApi) Run() error {
 
 	// add statsviz
 	if p.Config.Statsviz {
+		log.Debugf("manage api enable staisviz, to open path /debug/statsviz/ in explorer")
 		go example.Work()
 		// Create statsviz server and register the handlers on the router.
 		srv, _ := statsviz.NewServer()

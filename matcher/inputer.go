@@ -10,7 +10,8 @@ import (
 )
 
 type Inputer struct {
-	CountMsg int64 `json:"count_msg"`
+	CountMsg uint64       `json:"count_msg"`
+	Stats    *MyStatistic `json:"-"`
 
 	nc  *nats.Conn
 	sub *nats.Subscription
@@ -31,6 +32,7 @@ func (p *Inputer) Run(msgch chan *nats.Msg,
 	sub, err := nc.QueueSubscribe(arg_subject, arg_queue, func(m *nats.Msg) {
 		msgch <- m
 		p.CountMsg++
+		p.Stats.InputCount(1)
 	})
 	if err != nil {
 		log.Errorf("inputer QueueSub2Chan failed: %s", err)

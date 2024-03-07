@@ -55,11 +55,7 @@ func (p *ManageApi) monitorHostLoadingHandler(w http.ResponseWriter, r *http.Req
 
 func (p *ManageApi) statisticHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	fmt.Fprintf(w, `{"standard_log_v4": `)
-	// w.Write(p.Stats_stlog.Dump())
-	// fmt.Fprintf(w, `, "api_log_v4": `)
-	// w.Write(p.Stats_apilog.Dump())
-	fmt.Fprintf(w, `}`)
+	w.Write(p.Stats.Dump())
 }
 
 func (p *ManageApi) errorsHandler(w http.ResponseWriter, r *http.Request) {
