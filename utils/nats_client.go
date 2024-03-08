@@ -53,7 +53,7 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 			log.Infof("nats Discovered servers: %v\n", nc.DiscoveredServers())
 		}),
 		nats.ErrorHandler(func(_ *nats.Conn, _ *nats.Subscription, err error) {
-			log.Errorf("nats ErrorHandler Error: %v", err)
+			log.Errorf("nats ErrorHandler error: %v", err)
 			// if err == nats.ErrSlowConsumer { // logSlowConsumer
 			// pendingMsgs, _, err := sub.Pending()
 			// if err != nil {

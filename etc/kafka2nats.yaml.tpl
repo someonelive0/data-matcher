@@ -33,4 +33,4 @@ kakfa2nats:
 nats2kafka:
     subject: matchTopic
     jetstream: true
-    topic: flow.matched
+    topic: match_flow.http

@@ -29,7 +29,14 @@ func (p *Outputer) Run() error {
 	}
 
 	// 创建JetStream上下文
-	js, err := nc.JetStream(nats.PublishAsyncMaxPending(256))
+	js, err := nc.JetStream(
+		nats.PublishAsyncMaxPending(256),
+		nats.PublishAsyncErrHandler(func(_ nats.JetStream, _ *nats.Msg, err error) { // 异步发布消息错误
+			// TODO, 应该保存发布失败的消息，好下次发送
+			log.Errorf("nats jetstream ErrorHandler error: %v", err)
+			p.CountFailed++
+		}),
+	)
 	if err != nil {
 		log.Errorf("ouputer new jetstream %s failed: %s", servers, err)
 		return err
