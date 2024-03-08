@@ -70,7 +70,7 @@ func main() {
 	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer
 		Msgch:      msgch,
 		NatsConfig: &myconfig.NatsConfig,
-		HttpFlow:   &myconfig.HttpFlow,
+		Flow:       &myconfig.Flow,
 		Stats:      stats,
 	}
 	if err = inputer.Run(); err != nil {
@@ -80,10 +80,9 @@ func main() {
 	// run outputer
 	var wg sync.WaitGroup
 	var outputer = matcher.Outputer{
-		Outch:       outch,
-		NatsConfig:  &myconfig.NatsConfig,
-		HttpOutFlow: &myconfig.HttpFlow,
-		Stats:       stats,
+		Outch:      outch,
+		NatsConfig: &myconfig.NatsConfig,
+		Stats:      stats,
 	}
 	wg.Add(1)
 	go func() {

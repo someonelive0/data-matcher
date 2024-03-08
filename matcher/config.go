@@ -36,7 +36,7 @@ type MyConfig struct {
 	RulesFile   string `yaml:"rules_file" json:"rules_file"`
 
 	NatsConfig NatsConfig `yaml:"nats"`
-	HttpFlow   Flow       `yaml:"http_flow"`
+	Flow       Flow       `yaml:"flow"`
 
 	Statsviz bool `yaml:"statsviz"`
 }

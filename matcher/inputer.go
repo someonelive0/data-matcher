@@ -13,7 +13,7 @@ import (
 type Inputer struct {
 	Msgch      chan *nats.Msg `json:"-"`
 	NatsConfig *NatsConfig    `json:"-"`
-	HttpFlow   *Flow          `json:"-"`
+	Flow       *Flow          `json:"-"`
 	Stats      *MyStatistic   `json:"-"`
 	CountMsg   uint64         `json:"count_msg"`
 
@@ -33,7 +33,7 @@ func (p *Inputer) Run() error {
 	log.Infof("inputer connect %s success by user %s", servers, p.NatsConfig.User)
 
 	// sub, err := utils.QueueSub2Chan(nc, arg_subject, arg_queue, msgch)
-	sub, err := nc.QueueSubscribe(p.HttpFlow.Subject, p.HttpFlow.QueueName, func(m *nats.Msg) {
+	sub, err := nc.QueueSubscribe(p.Flow.Subject, p.Flow.QueueName, func(m *nats.Msg) {
 		p.Msgch <- m
 		p.CountMsg++
 		p.Stats.InputCount(1)
@@ -43,7 +43,7 @@ func (p *Inputer) Run() error {
 		nc.Close()
 		return err
 	}
-	log.Infof("inputer sub %s success with queue %s", p.HttpFlow.Subject, p.HttpFlow.QueueName)
+	log.Infof("inputer sub %s success with queue %s", p.Flow.Subject, p.Flow.QueueName)
 
 	p.nc = nc
 	p.sub = sub

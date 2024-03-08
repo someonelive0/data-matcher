@@ -12,7 +12,6 @@ import (
 type Outputer struct {
 	Outch       chan *nats.Msg `json:"-"`
 	NatsConfig  *NatsConfig    `json:"-"`
-	HttpOutFlow *Flow          `json:"-"`
 	Stats       *MyStatistic   `json:"-"`
 	CountMsg    uint64         `json:"count_msg"`
 	CountFailed uint64         `json:"count_failed"`

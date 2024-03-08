@@ -23,8 +23,9 @@ nats:
     user: user
     password: passwd
 
-http_flow:
+flow:
     queue_name: data-matcher
+    # 接受所有流填写 flow.*。只接受http流，则填写flow.http
     subject: flow.http
 
 
