@@ -63,7 +63,8 @@ func (p *Worker) Run() {
 				p.Outch <- m
 			}
 		case "flow.dns":
-			p.proccessDns(m)
+			// p.proccessDns(m)
+		default:
 		}
 
 		if p.CountMsg%1000 == 0 {
@@ -154,7 +155,6 @@ func (p *Worker) matchDict(m *nats.Msg) (string, bool) {
 
 // process msg with subject flow.dns
 func (p *Worker) proccessDns(m *nats.Msg) error {
-
 	jsonmap := make(map[string]interface{})
 	err := json.Unmarshal(m.Data, &jsonmap)
 	if err != nil {

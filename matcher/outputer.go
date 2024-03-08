@@ -18,6 +18,7 @@ type Outputer struct {
 	CountFailed uint64         `json:"count_failed"`
 
 	nc *nats.Conn
+	js nats.JetStreamContext
 }
 
 func (p *Outputer) Run() error {
@@ -47,6 +48,7 @@ func (p *Outputer) Run() error {
 		return err
 	}
 	p.nc = nc
+	p.js = js
 	log.Infof("ouputer connect %s success by user %s", servers, p.NatsConfig.User)
 
 	for m := range p.Outch {
@@ -64,7 +66,9 @@ func (p *Outputer) Run() error {
 
 	return nil
 }
+
 func (p *Outputer) Stop() error {
+	<-p.js.PublishAsyncComplete() // should wait async publish finished
 	if p.nc != nil {
 		p.nc.Close()
 		p.nc = nil
