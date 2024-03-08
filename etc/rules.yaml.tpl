@@ -564,7 +564,7 @@ Rules:
     Detect:
       KDict: ["age","年龄","岁数"]
       VReg:
-        - \b(((1[0-5])|[1-9])?\d)\b
+        #- \b(((1[0-5])|[1-9])?\d)\b
     Mask: AGE
     ExtInfo:
       EnGroup: user_data
