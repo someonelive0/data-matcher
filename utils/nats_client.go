@@ -45,7 +45,7 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 			log.Infof("nats ReconnectHandler client reconnected")
 		}),
 		nats.ClosedHandler(func(_ *nats.Conn) {
-			log.Warnf("nats ClosedHandler client closed")
+			log.Debugf("nats ClosedHandler client closed")
 		}),
 		nats.DiscoveredServersHandler(func(nc *nats.Conn) {
 			log.Warnf("nats DiscoveredServersHandler client discover")

@@ -94,6 +94,7 @@ func main() {
 	}()
 
 	// run workers
+	var wgWokers sync.WaitGroup // 单独等待workers的结束
 	var workers []*matcher.Worker = make([]*matcher.Worker, 0)
 	for i := 0; i < myconfig.Workers; i++ {
 		worker := &matcher.Worker{
@@ -111,9 +112,9 @@ func main() {
 	}
 
 	for i := 0; i < myconfig.Workers; i++ {
-		wg.Add(1)
+		wgWokers.Add(1)
 		go func(i int) {
-			defer wg.Done()
+			defer wgWokers.Done()
 			workers[i].Run()
 		}(i)
 	}
@@ -155,6 +156,7 @@ func main() {
 
 		inputer.Stop()
 		close(msgch)
+		wgWokers.Wait()
 		close(outch)
 		outputer.Stop()
 		// waitChanEmpty(chan_stlog_0, chan_stlog_1)

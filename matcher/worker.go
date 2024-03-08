@@ -57,8 +57,13 @@ func (p *Worker) Run() {
 		// log.Debugf(m.Size(), len(m.Data))
 
 		// 处理消息
-		if matched := p.proccessMsg(m); matched {
-			p.Outch <- m
+		switch m.Subject {
+		case "flow.http":
+			if matched := p.proccessHttp(m); matched {
+				p.Outch <- m
+			}
+		case "flow.dns":
+			p.proccessDns(m)
 		}
 
 		if p.CountMsg%1000 == 0 {
@@ -73,7 +78,8 @@ func (p *Worker) Dump() []byte {
 	return b
 }
 
-func (p *Worker) proccessMsg(m *nats.Msg) bool {
+// process msg with subject flow.http
+func (p *Worker) proccessHttp(m *nats.Msg) bool {
 	// 依次匹配正则表达式
 	reg_lable, reg_matched := p.matchReg(m)
 
@@ -144,4 +150,22 @@ func (p *Worker) matchDict(m *nats.Msg) (string, bool) {
 	}
 
 	return dict_lable, dict_magched
+}
+
+// process msg with subject flow.dns
+func (p *Worker) proccessDns(m *nats.Msg) error {
+
+	jsonmap := make(map[string]interface{})
+	err := json.Unmarshal(m.Data, &jsonmap)
+	if err != nil {
+		log.Errorf("worker unmarshal dns failed: %s\n", err)
+		return err
+	}
+
+	if dns, ok := jsonmap["dns"]; ok {
+		b, _ := json.Marshal(dns)
+		log.Debugf("DNS: %s", b)
+	}
+
+	return nil
 }
