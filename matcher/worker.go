@@ -15,14 +15,15 @@ import (
 )
 
 type Worker struct {
-	Name            string               `json:"name"`
-	Msgch           chan *nats.Msg       `json:"-"`
-	Outch           chan *nats.Msg       `json:"-"`
-	ValueRegs       []*engine.ValueRegex `json:"-"`
-	ColDicts        []*engine.ColDict    `json:"-"`
-	CountMsg        uint64               `json:"count_msg"`
-	CountMatchRegex uint64               `json:"count_matched_regex"`
-	CountMatchDict  uint64               `json:"count_matched_dict"`
+	Name            string                      `json:"name"`
+	Flowch          chan *nats.Msg              `json:"-"`
+	Outch           chan *nats.Msg              `json:"-"`
+	Dnsch           chan map[string]interface{} `json:"-"`
+	ValueRegs       []*engine.ValueRegex        `json:"-"`
+	ColDicts        []*engine.ColDict           `json:"-"`
+	CountMsg        uint64                      `json:"count_msg"`
+	CountMatchRegex uint64                      `json:"count_matched_regex"`
+	CountMatchDict  uint64                      `json:"count_matched_dict"`
 
 	rs   []*re2.Regexp
 	trie *ahocorasick.Trie
@@ -53,7 +54,7 @@ func (p *Worker) Run() {
 		p.Name, len(p.ValueRegs), len(p.ColDicts))
 	p.CountMsg, p.CountMatchRegex, p.CountMatchDict = 0, 0, 0
 
-	for m := range p.Msgch {
+	for m := range p.Flowch {
 		p.CountMsg++
 		// log.Debugf(m.Size(), len(m.Data))
 
@@ -64,7 +65,9 @@ func (p *Worker) Run() {
 				p.Outch <- m
 			}
 		case "flow.dns":
-			// p.proccessDns(m)
+			if dnsmap, err := p.proccessDns(m); err == nil {
+				p.Dnsch <- dnsmap
+			}
 		default:
 		}
 
@@ -167,21 +170,4 @@ func (p *Worker) matchDict(data []byte) (string, bool) {
 	}
 
 	return dict_lable, dict_magched
-}
-
-// process msg with subject flow.dns
-func (p *Worker) proccessDns(m *nats.Msg) error {
-	jsonmap := make(map[string]interface{})
-	err := json.Unmarshal(m.Data, &jsonmap) // TODO，改成sonic解析
-	if err != nil {
-		log.Errorf("worker unmarshal dns failed: %s\n", err)
-		return err
-	}
-
-	if dns, ok := jsonmap["dns"]; ok {
-		b, _ := json.Marshal(dns)
-		log.Debugf("DNS: %s", b)
-	}
-
-	return nil
 }

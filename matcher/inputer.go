@@ -11,7 +11,7 @@ import (
 )
 
 type Inputer struct {
-	Msgch      chan *nats.Msg `json:"-"`
+	Flowch     chan *nats.Msg `json:"-"`
 	NatsConfig *NatsConfig    `json:"-"`
 	Flow       *Flow          `json:"-"`
 	Stats      *MyStatistic   `json:"-"`
@@ -22,7 +22,7 @@ type Inputer struct {
 }
 
 // async to receive messages from a flow
-// 考虑一个流对应一个inputer，即main中如有多个flow要输入，则建立多个inputer
+// 采用nats的subject通配符，可以在一个inputer中输入多个flow主题，即 subject: flow.*
 func (p *Inputer) Run() error {
 	servers := strings.Join(p.NatsConfig.Servers, ",")
 	nc, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password)
@@ -32,14 +32,13 @@ func (p *Inputer) Run() error {
 	}
 	log.Infof("inputer connect %s success by user %s", servers, p.NatsConfig.User)
 
-	// sub, err := utils.QueueSub2Chan(nc, arg_subject, arg_queue, msgch)
 	sub, err := nc.QueueSubscribe(p.Flow.Subject, p.Flow.QueueName, func(m *nats.Msg) {
-		p.Msgch <- m
+		p.Flowch <- m
 		p.CountMsg++
 		p.Stats.InputCount(1)
 	})
 	if err != nil {
-		log.Errorf("inputer QueueSub2Chan failed: %s", err)
+		log.Errorf("inputer QueueSubscribe failed: %s", err)
 		nc.Close()
 		return err
 	}

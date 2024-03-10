@@ -25,8 +25,9 @@ type ManageApi struct {
 	Port      int
 	Config    *MyConfig
 	Stats     *MyStatistic
-	Msgch     chan *nats.Msg
+	Flowch    chan *nats.Msg
 	Outch     chan *nats.Msg
+	Dnsch     chan map[string]interface{}
 	Inputer   *Inputer
 	Outputer  *Outputer
 	Workers   []*Worker

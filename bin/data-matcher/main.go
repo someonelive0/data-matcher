@@ -64,11 +64,12 @@ func main() {
 
 	// run inputer, receive nats msg to channel
 	runok := true // Exit when run is not ok
-	var msgch = make(chan *nats.Msg, myconfig.ChannelSize)
+	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)
 	var outch = make(chan *nats.Msg, myconfig.ChannelSize)
+	var dnsch = make(chan map[string]interface{}, 10000)
 	var stats = matcher.NewMyStatistic(START_TIME)
 	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer
-		Msgch:      msgch,
+		Flowch:     flowch,
 		NatsConfig: &myconfig.NatsConfig,
 		Flow:       &myconfig.Flow,
 		Stats:      stats,
@@ -81,6 +82,7 @@ func main() {
 	var wg sync.WaitGroup
 	var outputer = matcher.Outputer{
 		Outch:      outch,
+		Dnsch:      dnsch,
 		NatsConfig: &myconfig.NatsConfig,
 		Stats:      stats,
 	}
@@ -98,8 +100,9 @@ func main() {
 	for i := 0; i < myconfig.Workers; i++ {
 		worker := &matcher.Worker{
 			Name:      strconv.Itoa(i),
-			Msgch:     msgch,
+			Flowch:    flowch,
 			Outch:     outch,
+			Dnsch:     dnsch,
 			ValueRegs: regs,
 			ColDicts:  dicts,
 		}
@@ -124,8 +127,9 @@ func main() {
 		Port:           myconfig.ManagePort,
 		Config:         myconfig,
 		Stats:          stats,
-		Msgch:          msgch,
+		Flowch:         flowch,
 		Outch:          outch,
+		Dnsch:          dnsch,
 		Inputer:        &inputer,
 		Outputer:       &outputer,
 		Workers:        workers,
@@ -154,9 +158,10 @@ func main() {
 		close(signchan)
 
 		inputer.Stop()
-		close(msgch)
+		close(flowch)
 		wgWokers.Wait()
 		close(outch)
+		close(dnsch)
 		outputer.Stop()
 		// waitChanEmpty(chan_stlog_0, chan_stlog_1)
 		myapi.Stop()
