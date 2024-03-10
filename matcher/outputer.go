@@ -53,7 +53,10 @@ func (p *Outputer) init() error {
 	kvb, err := js.KeyValue("dns")
 	if err != nil {
 		kvb, err = js.CreateKeyValue(&nats.KeyValueConfig{
-			Bucket: "dns",
+			Bucket:       "dns",
+			Replicas:     1,
+			MaxBytes:     -1, // 1 * 1024 * 1024 * 1024, // 1GiB
+			MaxValueSize: -1, // 1024 * 1024,            // 1MiB,
 		})
 		if err != nil {
 			log.Errorf("ouputer create nats keyvalue failed %s", err)
