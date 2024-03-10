@@ -10,16 +10,17 @@ import (
 )
 
 type Outputer struct {
-	Outch       chan *nats.Msg              `json:"-"`
-	Dnsch       chan map[string]interface{} `json:"-"`
-	NatsConfig  *NatsConfig                 `json:"-"`
-	Stats       *MyStatistic                `json:"-"`
-	CountMsg    uint64                      `json:"count_msg"`
-	CountFailed uint64                      `json:"count_failed"`
-
-	nc  *nats.Conn
-	js  nats.JetStreamContext
-	kvb nats.KeyValue
+	Outch          chan *nats.Msg              `json:"-"`
+	Dnsch          chan map[string]interface{} `json:"-"`
+	NatsConfig     *NatsConfig                 `json:"-"`
+	Stats          *MyStatistic                `json:"-"`
+	CountMsg       uint64                      `json:"count_msg"`
+	CountFailed    uint64                      `json:"count_failed"`
+	CountDnsMsg    uint64                      `json:"count_dns_msg"`
+	CountDnsFailed uint64                      `json:"count_dns_failed"`
+	nc             *nats.Conn
+	js             nats.JetStreamContext
+	kvb            nats.KeyValue
 }
 
 func (p *Outputer) init() error {
@@ -77,7 +78,7 @@ func (p *Outputer) Run() error {
 	httpch_closed, dnsch_closed := false, false
 	for {
 		if httpch_closed && dnsch_closed {
-			return nil
+			break
 		}
 
 		select {
@@ -103,7 +104,10 @@ func (p *Outputer) Run() error {
 				if key, ok := dnsmap["rrname"]; ok {
 					b, _ := json.Marshal(dnsmap)
 					if _, err = p.kvb.Put(key.(string), b); err != nil {
+						p.CountDnsFailed++
 						log.Errorf("ouputer set kv failed: %s", err)
+					} else {
+						p.CountDnsMsg++
 					}
 				}
 			}
