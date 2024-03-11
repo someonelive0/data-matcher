@@ -10,16 +10,29 @@ import (
 	streamsext "github.com/reugn/go-streams/extension"
 	"github.com/reugn/go-streams/flow"
 	log "github.com/sirupsen/logrus"
+	"github.com/tidwall/gjson"
 )
 
 // process msg of subject flow.http
 func (p *Worker) processHttp(httpch chan interface{}) error {
 	var source = streamsext.NewChanSource(httpch)
 	var matchHttp = flow.NewMap(p.matchHttp, 1)
+	var discoverApp = flow.NewMap(p.discoverApp, 1)
+	var discoverApi = flow.NewMap(p.discoverApi, 1)
+	var disposeUsername = flow.NewMap(p.disposeUsername, 1)
+	var disposeToken = flow.NewMap(p.disposeToken, 1)
+	var discoverAccount = flow.NewMap(p.discoverAccount, 1)
+	var discoverIp = flow.NewMap(p.discoverIp, 1)
 	var ingore = streamsext.NewIgnoreSink()
 
 	source.
 		Via(matchHttp).
+		Via(discoverApp).
+		Via(discoverApi).
+		Via(disposeUsername).
+		Via(disposeToken).
+		Via(discoverAccount).
+		Via(discoverIp).
 		To(ingore)
 
 	log.Debugf("worker [%s] processHttp, end pipeline", p.Name) // will not run here
@@ -115,4 +128,62 @@ func (p *Worker) matchDict(data []byte) (string, bool) {
 	}
 
 	return dict_lable, dict_magched
+}
+
+// discover app from msg of subject flow.http
+func (p *Worker) discoverApp(in interface{}) interface{} {
+	m := in.(*nats.Msg)
+
+	dest_ip := gjson.Get(string(m.Data), "dest_ip")
+	if !dest_ip.Exists() {
+		return m
+	}
+	dest_port := gjson.Get(string(m.Data), "dest_port")
+	if !dest_port.Exists() {
+		return m
+	}
+	hostname := gjson.Get(string(m.Data), "hostname")
+	if !hostname.Exists() {
+		return m
+	}
+
+	s := hostname.String() + "/" + dest_ip.String() + "/" + dest_port.Raw
+	log.Debugf("---> %s", s)
+
+	return m
+}
+
+// discover api from msg of subject flow.http
+func (p *Worker) discoverApi(in interface{}) interface{} {
+	m := in.(*nats.Msg)
+
+	return m
+}
+
+// dispose username from msg of subject flow.http
+func (p *Worker) disposeUsername(in interface{}) interface{} {
+	m := in.(*nats.Msg)
+
+	return m
+}
+
+// dispose token from msg of subject flow.http
+func (p *Worker) disposeToken(in interface{}) interface{} {
+	m := in.(*nats.Msg)
+
+	return m
+}
+
+// discover account from msg of subject flow.http
+func (p *Worker) discoverAccount(in interface{}) interface{} {
+	m := in.(*nats.Msg)
+
+	return m
+}
+
+// discover client ip from msg of subject flow.http
+func (p *Worker) discoverIp(in interface{}) interface{} {
+	m := in.(*nats.Msg)
+
+	return m
 }

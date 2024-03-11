@@ -130,7 +130,7 @@ func (p *Outputer) OutputHttp() (err error) {
 		p.CountMsg++
 		_, err = p.js.PublishAsync("match_"+m.Subject, m.Data) // 异步发布
 		if err != nil {
-			log.Errorf("ouputer jetstream async pub failed: %s", err)
+			log.Warnf("ouputer jetstream async pub failed: %s", err)
 
 			// retry pub if failed async pub
 			if _, err = p.js.Publish("match_"+m.Subject, m.Data); err != nil { // 同步重试

@@ -20,6 +20,7 @@ require (
 	github.com/segmentio/kafka-go v0.4.47
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.9.3
+	github.com/tidwall/gjson v1.17.1
 	github.com/wasilibs/go-re2 v1.4.1
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -43,6 +44,8 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tetratelabs/wazero v1.5.0 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.13 // indirect
 	github.com/tklauser/numcpus v0.7.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect

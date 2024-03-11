@@ -2,6 +2,7 @@ package matcher
 
 import (
 	"encoding/json"
+	"sync"
 
 	ahocorasick "github.com/BobuSumisu/aho-corasick"
 	"github.com/nats-io/nats.go"
@@ -18,6 +19,9 @@ type Worker struct {
 	Dnsch           chan *DnsItem        `json:"-"`
 	ValueRegs       []*engine.ValueRegex `json:"-"`
 	ColDicts        []*engine.ColDict    `json:"-"`
+	Appmap          *sync.Map            `json:"-"`
+	Apimap          *sync.Map            `json:"-"`
+	Ipmap           *sync.Map            `json:"-"`
 	CountMsg        uint64               `json:"count_msg"`
 	CountMatchRegex uint64               `json:"count_matched_regex"`
 	CountMatchDict  uint64               `json:"count_matched_dict"`

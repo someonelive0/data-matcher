@@ -95,6 +95,9 @@ func main() {
 	}()
 
 	// run workers
+	var appmap sync.Map
+	var apimap sync.Map
+	var ipmap sync.Map
 	var wgWokers sync.WaitGroup // 单独等待workers的结束
 	var workers []*matcher.Worker = make([]*matcher.Worker, 0)
 	for i := 0; i < myconfig.Workers; i++ {
@@ -105,6 +108,9 @@ func main() {
 			Dnsch:     dnsch,
 			ValueRegs: regs,
 			ColDicts:  dicts,
+			Appmap:    &appmap,
+			Apimap:    &apimap,
+			Ipmap:     &ipmap,
 		}
 		if err = worker.Init(); err != nil {
 			log.Errorf("worker init failed %s", err)
