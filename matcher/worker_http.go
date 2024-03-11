@@ -22,7 +22,7 @@ func (p *Worker) processHttp(httpch chan interface{}) error {
 		Via(matchHttp).
 		To(ingore)
 
-	log.Infof("worker [%s] processHttp, end pipeline", p.Name) // will not run here
+	log.Debugf("worker [%s] processHttp, end pipeline", p.Name) // will not run here
 	return nil
 }
 
