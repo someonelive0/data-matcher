@@ -15,15 +15,15 @@ import (
 )
 
 type Worker struct {
-	Name            string                      `json:"name"`
-	Flowch          chan *nats.Msg              `json:"-"`
-	Outch           chan *nats.Msg              `json:"-"`
-	Dnsch           chan map[string]interface{} `json:"-"`
-	ValueRegs       []*engine.ValueRegex        `json:"-"`
-	ColDicts        []*engine.ColDict           `json:"-"`
-	CountMsg        uint64                      `json:"count_msg"`
-	CountMatchRegex uint64                      `json:"count_matched_regex"`
-	CountMatchDict  uint64                      `json:"count_matched_dict"`
+	Name            string               `json:"name"`
+	Flowch          chan *nats.Msg       `json:"-"`
+	Outch           chan *nats.Msg       `json:"-"`
+	Dnsch           chan *DnsItem        `json:"-"`
+	ValueRegs       []*engine.ValueRegex `json:"-"`
+	ColDicts        []*engine.ColDict    `json:"-"`
+	CountMsg        uint64               `json:"count_msg"`
+	CountMatchRegex uint64               `json:"count_matched_regex"`
+	CountMatchDict  uint64               `json:"count_matched_dict"`
 
 	rs   []*re2.Regexp
 	trie *ahocorasick.Trie
@@ -65,8 +65,8 @@ func (p *Worker) Run() {
 				p.Outch <- m
 			}
 		case "flow.dns":
-			if dnsmap, err := p.proccessDns(m); err == nil {
-				p.Dnsch <- dnsmap
+			if dnsitem, err := p.proccessDns(m); err == nil {
+				p.Dnsch <- dnsitem
 			}
 		default:
 		}

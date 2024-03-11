@@ -10,14 +10,14 @@ import (
 )
 
 type Outputer struct {
-	Outch          chan *nats.Msg              `json:"-"`
-	Dnsch          chan map[string]interface{} `json:"-"`
-	NatsConfig     *NatsConfig                 `json:"-"`
-	Stats          *MyStatistic                `json:"-"`
-	CountMsg       uint64                      `json:"count_msg"`
-	CountFailed    uint64                      `json:"count_failed"`
-	CountDnsMsg    uint64                      `json:"count_dns_msg"`
-	CountDnsFailed uint64                      `json:"count_dns_failed"`
+	Outch          chan *nats.Msg `json:"-"`
+	Dnsch          chan *DnsItem  `json:"-"`
+	NatsConfig     *NatsConfig    `json:"-"`
+	Stats          *MyStatistic   `json:"-"`
+	CountMsg       uint64         `json:"count_msg"`
+	CountFailed    uint64         `json:"count_failed"`
+	CountDnsMsg    uint64         `json:"count_dns_msg"`
+	CountDnsFailed uint64         `json:"count_dns_failed"`
 	nc             *nats.Conn
 	js             nats.JetStreamContext
 	jskv           nats.JetStreamContext
@@ -122,21 +122,17 @@ func (p *Outputer) Run() error {
 			}
 
 		// 输出DNS键值对
-		case dnsmap, ok := <-p.Dnsch:
+		case dnsitem, ok := <-p.Dnsch:
 			if !ok {
 				dnsch_closed = true
 			} else {
-				// continue
-				if key, ok := dnsmap["rrname"]; ok && len(key.(string)) > 0 {
-					p.CountDnsMsg++
-					b, _ := json.Marshal(dnsmap)
-					if _, err = p.kvb.Get(key.(string)); err != nil {
-						if _, err = p.kvb.Put(key.(string), b); err != nil {
-							p.CountDnsFailed++
-							log.Errorf("ouputer set kv [%s] [%s] failed: %s", key.(string), b, err)
-						} else {
-							p.Stats.DnsCount(1)
-						}
+				p.CountDnsMsg++
+				if _, err = p.kvb.Get(dnsitem.Rrname); err != nil { // 如果key不存在才Put
+					if _, err = p.kvb.PutString(dnsitem.Rrname, dnsitem.Value); err != nil {
+						p.CountDnsFailed++
+						log.Errorf("ouputer set kv [%s] failed: %s", dnsitem.Rrname, err)
+					} else {
+						p.Stats.DnsCount(1)
 					}
 				}
 			}

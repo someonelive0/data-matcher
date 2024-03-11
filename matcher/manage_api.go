@@ -27,7 +27,7 @@ type ManageApi struct {
 	Stats     *MyStatistic
 	Flowch    chan *nats.Msg
 	Outch     chan *nats.Msg
-	Dnsch     chan map[string]interface{}
+	Dnsch     chan *DnsItem
 	Inputer   *Inputer
 	Outputer  *Outputer
 	Workers   []*Worker
