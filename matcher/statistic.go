@@ -14,6 +14,7 @@ type MyStatistic struct {
 	Lastoutputtime time.Time `json:"last_output_time"`
 	CountInput     uint64    `json:"count_input"`
 	CountOutput    uint64    `json:"count_output"`
+	CountDns       uint64    `json:"count_dns"`
 	// Matchedpolicy  MatchedPolicy     `json:"matchd_policy"`
 	Dailystatistic []*DailyStatistic `json:"daily_statistic"`
 	dailymap       map[string]*DailyStatistic
@@ -52,6 +53,11 @@ func (p *MyStatistic) InputCount(n uint64) {
 // mutex is not used
 func (p *MyStatistic) OutputCount(n uint64) {
 	atomic.AddUint64(&p.CountOutput, n)
+	p.Lastoutputtime = time.Now()
+}
+
+func (p *MyStatistic) DnsCount(n uint64) {
+	atomic.AddUint64(&p.CountDns, n)
 	p.Lastoutputtime = time.Now()
 }
 

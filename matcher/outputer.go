@@ -20,6 +20,7 @@ type Outputer struct {
 	CountDnsFailed uint64                      `json:"count_dns_failed"`
 	nc             *nats.Conn
 	js             nats.JetStreamContext
+	jskv           nats.JetStreamContext
 	kvb            nats.KeyValue
 }
 
@@ -50,10 +51,29 @@ func (p *Outputer) init() error {
 		return err
 	}
 
-	kvb, err := js.KeyValue("dns")
+	// 为KV创建JetStream上下文
+	nckv, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password)
 	if err != nil {
-		kvb, err = js.CreateKeyValue(&nats.KeyValueConfig{
+		log.Errorf("ouputer NatsConnect kv %s failed: %s", servers, err)
+		return err
+	}
+	jskv, err := nckv.JetStream(
+		nats.PublishAsyncMaxPending(256),
+		nats.PublishAsyncErrHandler(func(_ nats.JetStream, _ *nats.Msg, err error) { // 异步发布消息错误
+			// TODO, 应该保存发布失败的消息，好下次发送
+			log.Errorf("nats jetstream kv ErrorHandler error: %v", err)
+			p.CountFailed++
+		}),
+	)
+	if err != nil {
+		log.Errorf("ouputer new jetstream kv %s failed: %s", servers, err)
+		return err
+	}
+	kvb, err := jskv.KeyValue("dns")
+	if err != nil {
+		kvb, err = jskv.CreateKeyValue(&nats.KeyValueConfig{
 			Bucket:       "dns",
+			Storage:      nats.FileStorage,
 			Replicas:     1,
 			MaxBytes:     -1, // 1 * 1024 * 1024 * 1024, // 1GiB
 			MaxValueSize: -1, // 1024 * 1024,            // 1MiB,
@@ -66,6 +86,7 @@ func (p *Outputer) init() error {
 
 	p.nc = nc
 	p.js = js
+	p.jskv = jskv
 	p.kvb = kvb
 	log.Infof("ouputer connect %s success by user %s", servers, p.NatsConfig.User)
 
@@ -90,6 +111,7 @@ func (p *Outputer) Run() error {
 			if !ok {
 				httpch_closed = true
 			} else {
+				p.CountMsg++
 				_, err = p.js.PublishAsync("match_"+m.Subject, m.Data) // 异步发布
 				if err != nil {
 					p.CountFailed++
@@ -104,13 +126,17 @@ func (p *Outputer) Run() error {
 			if !ok {
 				dnsch_closed = true
 			} else {
-				if key, ok := dnsmap["rrname"]; ok {
+				// continue
+				if key, ok := dnsmap["rrname"]; ok && len(key.(string)) > 0 {
+					p.CountDnsMsg++
 					b, _ := json.Marshal(dnsmap)
-					if _, err = p.kvb.Put(key.(string), b); err != nil {
-						p.CountDnsFailed++
-						log.Errorf("ouputer set kv failed: %s", err)
-					} else {
-						p.CountDnsMsg++
+					if _, err = p.kvb.Get(key.(string)); err != nil {
+						if _, err = p.kvb.Put(key.(string), b); err != nil {
+							p.CountDnsFailed++
+							log.Errorf("ouputer set kv [%s] [%s] failed: %s", key.(string), b, err)
+						} else {
+							p.Stats.DnsCount(1)
+						}
 					}
 				}
 			}
@@ -123,6 +149,9 @@ func (p *Outputer) Run() error {
 func (p *Outputer) Stop() error {
 	if p.js != nil {
 		<-p.js.PublishAsyncComplete() // should wait async publish finished
+	}
+	if p.jskv != nil {
+		<-p.jskv.PublishAsyncComplete() // should wait async publish finished
 	}
 	if p.nc != nil {
 		p.nc.Close()

@@ -66,7 +66,7 @@ func main() {
 	runok := true // Exit when run is not ok
 	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)
 	var outch = make(chan *nats.Msg, myconfig.ChannelSize)
-	var dnsch = make(chan map[string]interface{}, 10000)
+	var dnsch = make(chan map[string]interface{}, myconfig.ChannelSize)
 	var stats = matcher.NewMyStatistic(START_TIME)
 	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer
 		Flowch:     flowch,
