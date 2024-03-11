@@ -56,7 +56,12 @@ func (p *Worker) Run() {
 	p.CountMsg, p.CountMatchRegex, p.CountMatchDict = 0, 0, 0
 
 	httpch := make(chan interface{}, 1)
-	go p.processHttp(httpch)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		p.processHttp(httpch)
+	}()
 
 	for m := range p.Flowch {
 		p.CountMsg++
@@ -83,6 +88,7 @@ func (p *Worker) Run() {
 	}
 
 	close(httpch)
+	wg.Wait()
 }
 
 func (p *Worker) Dump() []byte {
