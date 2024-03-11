@@ -12,7 +12,7 @@ type DnsItem struct {
 	Value  string
 }
 
-func (p *Worker) proccessDns(m *nats.Msg) (*DnsItem, error) {
+func (p *Worker) processDns(m *nats.Msg) (*DnsItem, error) {
 	dns, err := sonic.Get(m.Data, "dns")
 	if err != nil {
 		return nil, err

@@ -16,6 +16,7 @@ require (
 	github.com/iohub/ahocorasick v0.0.0-20240118134817-7d0e3abf6181
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/nats-io/nats.go v1.33.1
+	github.com/reugn/go-streams v0.10.0
 	github.com/segmentio/kafka-go v0.4.47
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sirupsen/logrus v1.9.3
