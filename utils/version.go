@@ -7,7 +7,7 @@ import (
 // Global version infomation
 
 const (
-	SERVICE_VERSION = "3.0.0"
+	APP_VERSION = "3.0.0"
 
 	// date +%FT%T%z  // date +'%Y%m%d'
 	BUILD_TIME = "2024-03-31T00:00:00+0800"
@@ -27,12 +27,12 @@ const (
 
 func Version(app string) string {
 	return fmt.Sprintf(`{"app": "%s", "version": "%s", "build_time": "%s", "go_version": "%s"}`,
-		app, SERVICE_VERSION, BUILD_TIME, GO_VERSION)
+		app, APP_VERSION, BUILD_TIME, GO_VERSION)
 }
 
 func ShowBanner() {
 	fmt.Printf("%s\n", IDSS_BANNER)
-	fmt.Printf("规则匹配 data-matcher %s  Copyright (C) 2024 IDSS\n", SERVICE_VERSION)
+	fmt.Printf("规则匹配 data-matcher %s  Copyright (C) 2024 IDSS\n", APP_VERSION)
 }
 
 func ShowBannerForApp(app, version, build_time string) {

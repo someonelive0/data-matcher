@@ -28,10 +28,10 @@ func init() {
 	flag.Parse()
 	if *arg_version {
 		fmt.Print(utils.IDSS_BANNER)
-		fmt.Printf("%s\n", utils.SERVICE_VERSION)
+		fmt.Printf("%s\n", utils.APP_VERSION)
 		os.Exit(0)
 	}
-	utils.ShowBannerForApp("kafka2nats", utils.SERVICE_VERSION, utils.BUILD_TIME)
+	utils.ShowBannerForApp("kafka2nats", utils.APP_VERSION, utils.BUILD_TIME)
 	utils.Chdir2PrgPath()
 	fmt.Println("pwd:", utils.GetPrgDir())
 	utils.InitLog("kafka2nats.log", *arg_debug)
