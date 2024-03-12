@@ -9,9 +9,9 @@ import (
 	"os"
 	"time"
 
-	"data-matcher/utils"
-
 	"github.com/nats-io/nats.go"
+
+	"data-matcher/utils"
 )
 
 var (

@@ -207,3 +207,66 @@ func (p *ManageApi) ruleReloadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// fmt.Fprint(w, s)
 }
+
+func (p *ManageApi) DiscoverAppHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	i := 0
+	fmt.Fprint(w, "[")
+	p.PostWorker.AppMap.Range(func(key, value interface{}) bool {
+		app := key.(string)
+		num := value.(int)
+		if i == 0 {
+			fmt.Fprint(w, "\n")
+		} else {
+			fmt.Fprint(w, ",\n")
+		}
+		fmt.Fprintf(w, `{"app": "%s", "num": %d}`, app, num)
+
+		i++
+		return true
+	})
+	fmt.Fprint(w, "\n]")
+}
+
+func (p *ManageApi) DiscoverApiHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	i := 0
+	fmt.Fprint(w, "[")
+	p.PostWorker.ApiMap.Range(func(key, value interface{}) bool {
+		api := key.(string)
+		num := value.(int)
+		if i == 0 {
+			fmt.Fprint(w, "\n")
+		} else {
+			fmt.Fprint(w, ",\n")
+		}
+		fmt.Fprintf(w, `{"api": "%s", "num": %d}`, api, num)
+
+		i++
+		return true
+	})
+	fmt.Fprint(w, "\n]")
+}
+
+func (p *ManageApi) DiscoverIpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
+	i := 0
+	fmt.Fprint(w, "[")
+	p.PostWorker.IpMap.Range(func(key, value interface{}) bool {
+		api := key.(string)
+		num := value.(int)
+		if i == 0 {
+			fmt.Fprint(w, "\n")
+		} else {
+			fmt.Fprint(w, ",\n")
+		}
+		fmt.Fprintf(w, `{"api": "%s", "num": %d}`, api, num)
+
+		i++
+		return true
+	})
+	fmt.Fprint(w, "\n]")
+}

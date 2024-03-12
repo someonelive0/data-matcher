@@ -23,19 +23,20 @@ type ManageApi struct {
 	utils.RestapiHandler
 
 	// Host       string
-	Port      int
-	Config    *MyConfig
-	Stats     *MyStatistic
-	Flowch    chan *nats.Msg
-	Httpch    chan *model.MsgHttp
-	Outhttpch chan *model.MsgHttp
-	Outdnsch  chan *model.MsgDns
-	Inputer   *Inputer
-	Outputer  *Outputer
-	Workers   []*Worker
-	ValueRegs []*engine.ValueRegex
-	ColDicts  []*engine.ColDict
-	Myerrors  *utils.MyErrors
+	Port       int
+	Config     *MyConfig
+	Stats      *MyStatistic
+	Flowch     chan *nats.Msg
+	Httpch     chan *model.MsgHttp
+	Outhttpch  chan *model.MsgHttp
+	Outdnsch   chan *model.MsgDns
+	Inputer    *Inputer
+	Outputer   *Outputer
+	Workers    []*Worker
+	PostWorker *PostWorker
+	ValueRegs  []*engine.ValueRegex
+	ColDicts   []*engine.ColDict
+	Myerrors   *utils.MyErrors
 
 	server *http.Server
 }
@@ -65,6 +66,10 @@ func (p *ManageApi) Run() error {
 	r.HandleFunc("/rule", p.ruleReloadHandler).Methods("PUT")
 	r.HandleFunc("/rule/", p.ruleHandler).Methods("GET")
 	r.HandleFunc("/rule/{title:[a-z0-9_\\-]+}", p.ruleHandler).Methods("GET")
+
+	r.HandleFunc("/discover/app", p.DiscoverAppHandler).Methods("GET")
+	r.HandleFunc("/discover/api", p.DiscoverApiHandler).Methods("GET")
+	r.HandleFunc("/discover/ip", p.DiscoverIpHandler).Methods("GET")
 
 	// add statsviz
 	if p.Config.Statsviz {

@@ -154,6 +154,7 @@ func main() {
 		Inputer:        &inputer,
 		Outputer:       &outputer,
 		Workers:        workers,
+		PostWorker:     &post_worker,
 		ValueRegs:      regs,
 		ColDicts:       dicts,
 		Myerrors:       myerrors,

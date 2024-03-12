@@ -152,15 +152,17 @@ func (p *Outputer) OutputHttp() (err error) {
 func (p *Outputer) OutputDns() error {
 	for msgDns := range p.Outdnsch {
 		p.CountDnsMsg++
-		if _, err := p.kvb.Get(msgDns.Dns.Rrname); err != nil { // 如果key不存在才Put
-			b, _ := json.Marshal(msgDns.Dns)
-			if _, err = p.kvb.Put(msgDns.Dns.Rrname, b); err != nil {
-				p.CountDnsFailed++
-				log.Errorf("ouputer set kv [%s] failed: %s", msgDns.Dns.Rrname, err)
-			} else {
-				p.Stats.OutputDnsCount(1)
+		go func(msgDns *model.MsgDns) { // 写dns到nats keyvalue store 太慢，所以用异步写
+			if _, err := p.kvb.Get(msgDns.Dns.Rrname); err != nil { // 如果key不存在才Put
+				b, _ := json.Marshal(msgDns.Dns)
+				if _, err = p.kvb.Put(msgDns.Dns.Rrname, b); err != nil {
+					p.CountDnsFailed++
+					log.Errorf("ouputer set kv [%s] failed: %s", msgDns.Dns.Rrname, err)
+				} else {
+					p.Stats.OutputDnsCount(1)
+				}
 			}
-		}
+		}(msgDns)
 	}
 
 	return nil
