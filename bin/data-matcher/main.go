@@ -67,7 +67,7 @@ func main() {
 	runok := true // Exit when run is not ok
 	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)
 	var httpch = make(chan *model.MsgHttp, 10000)
-	var outch = make(chan *nats.Msg, myconfig.ChannelSize)
+	var outch = make(chan *model.MsgHttp, myconfig.ChannelSize)
 	var dnsch = make(chan *model.MsgDns, myconfig.ChannelSize)
 	var stats = matcher.NewMyStatistic(START_TIME)
 
@@ -148,6 +148,7 @@ func main() {
 		Config:         myconfig,
 		Stats:          stats,
 		Flowch:         flowch,
+		Httpch:         httpch,
 		Outch:          outch,
 		Dnsch:          dnsch,
 		Inputer:        &inputer,

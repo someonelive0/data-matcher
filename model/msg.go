@@ -55,11 +55,26 @@ type HttpItem struct {
 	RespBody          string       `json:"respBody"`
 	RespLen           int          `json:"respLen"`
 	TotalLen          int          `json:"totalLen"`
+
+	// 匹配正则和字典的结果
+	Value_regex []RegexMatched `json:"value_regex"`
+	Column_dict []DictMatched  `json:"column_dict"`
 }
 
 type HttpHeader struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+type RegexMatched struct {
+	Lable    string `json:"lable"`
+	Position []int  `json:"position"`
+}
+
+type DictMatched struct {
+	Lable    string `json:"lable"`
+	Match    string `json:"match"`
+	Position int    `json:"position"`
 }
 
 /*

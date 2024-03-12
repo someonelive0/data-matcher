@@ -27,7 +27,8 @@ type ManageApi struct {
 	Config    *MyConfig
 	Stats     *MyStatistic
 	Flowch    chan *nats.Msg
-	Outch     chan *nats.Msg
+	Httpch    chan *model.MsgHttp
+	Outch     chan *model.MsgHttp
 	Dnsch     chan *model.MsgDns
 	Inputer   *Inputer
 	Outputer  *Outputer

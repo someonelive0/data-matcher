@@ -18,6 +18,7 @@ func (p *ManageApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	s := fmt.Sprintf(`{"run_time": "%s", "pid": %d`, p.Runtime.Format(time.RFC3339), os.Getpid())
 	s += fmt.Sprintf(`, "process_mem": %s`, utils.ProcessMem())
 	s += fmt.Sprintf(`, "channel": {"flow_channel": {"len": %d, "cap": %d}`, len(p.Flowch), cap(p.Flowch))
+	s += fmt.Sprintf(`, "http_channel": {"len": %d, "cap": %d}`, len(p.Httpch), cap(p.Httpch))
 	s += fmt.Sprintf(`, "out_channel": {"len": %d, "cap": %d}`, len(p.Outch), cap(p.Outch))
 	s += fmt.Sprintf(`, "dns_channel": {"len": %d, "cap": %d} }`, len(p.Dnsch), cap(p.Dnsch))
 	s += fmt.Sprintf(`, "inputer": %s`, p.Inputer.Dump())

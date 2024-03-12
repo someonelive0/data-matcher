@@ -12,14 +12,14 @@ import (
 )
 
 type Outputer struct {
-	Outch          chan *nats.Msg     `json:"-"`
-	Dnsch          chan *model.MsgDns `json:"-"`
-	NatsConfig     *NatsConfig        `json:"-"`
-	Stats          *MyStatistic       `json:"-"`
-	CountMsg       uint64             `json:"count_msg"`
-	CountFailed    uint64             `json:"count_failed"`
-	CountDnsMsg    uint64             `json:"count_dns_msg"`
-	CountDnsFailed uint64             `json:"count_dns_failed"`
+	Outch          chan *model.MsgHttp `json:"-"`
+	Dnsch          chan *model.MsgDns  `json:"-"`
+	NatsConfig     *NatsConfig         `json:"-"`
+	Stats          *MyStatistic        `json:"-"`
+	CountMsg       uint64              `json:"count_msg"`
+	CountFailed    uint64              `json:"count_failed"`
+	CountDnsMsg    uint64              `json:"count_dns_msg"`
+	CountDnsFailed uint64              `json:"count_dns_failed"`
 
 	nc   *nats.Conn // 写http到jetstream
 	js   nats.JetStreamContext
@@ -127,14 +127,15 @@ func (p *Outputer) Run() error {
 }
 
 func (p *Outputer) OutputHttp() (err error) {
-	for m := range p.Outch {
+	for msgHttp := range p.Outch {
 		p.CountMsg++
-		_, err = p.js.PublishAsync("match_"+m.Subject, m.Data) // 异步发布
+		b, _ := json.Marshal(msgHttp)
+		_, err = p.js.PublishAsync("match_flow.http", b) // 异步发布
 		if err != nil {
 			log.Warnf("ouputer jetstream async pub failed: %s", err)
 
 			// retry pub if failed async pub
-			if _, err = p.js.Publish("match_"+m.Subject, m.Data); err != nil { // 同步重试
+			if _, err = p.js.Publish("match_flow.http", b); err != nil { // 同步重试
 				p.CountFailed++
 				log.Errorf("ouputer jetstream async and sync pub failed: %s", err)
 			} else {
