@@ -2,9 +2,6 @@ package matcher
 
 import (
 	"data-matcher/model"
-	"fmt"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type PostWorker struct {
@@ -23,8 +20,8 @@ func (p *PostWorker) Stop() {
 // discover app from msg of subject flow.http
 func (p *PostWorker) discoverApp(msgHttp *model.MsgHttp) error {
 
-	s := fmt.Sprintf("%s/%s/%d", msgHttp.Http.Hostname, msgHttp.Dest_ip, msgHttp.Dest_port)
-	log.Debugf("---> %s", s)
+	// s := fmt.Sprintf("%s/%s/%d", msgHttp.Http.Hostname, msgHttp.Dest_ip, msgHttp.Dest_port)
+	// log.Debugf("---> %s", s)
 
 	return nil
 }

@@ -68,7 +68,7 @@ func main() {
 	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)
 	var httpch = make(chan *model.MsgHttp, 10000)
 	var outch = make(chan *nats.Msg, myconfig.ChannelSize)
-	var dnsch = make(chan *matcher.DnsItem, myconfig.ChannelSize)
+	var dnsch = make(chan *model.MsgDns, myconfig.ChannelSize)
 	var stats = matcher.NewMyStatistic(START_TIME)
 
 	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer

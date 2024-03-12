@@ -15,6 +15,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"data-matcher/engine"
+	"data-matcher/model"
 	"data-matcher/utils"
 )
 
@@ -27,7 +28,7 @@ type ManageApi struct {
 	Stats     *MyStatistic
 	Flowch    chan *nats.Msg
 	Outch     chan *nats.Msg
-	Dnsch     chan *DnsItem
+	Dnsch     chan *model.MsgDns
 	Inputer   *Inputer
 	Outputer  *Outputer
 	Workers   []*Worker

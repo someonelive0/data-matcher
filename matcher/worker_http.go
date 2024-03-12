@@ -5,24 +5,18 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"github.com/bytedance/sonic"
 	"github.com/nats-io/nats.go"
+
+	"data-matcher/model"
 )
 
 // process msg of subject flow.http
-func (p *Worker) processHttp(m *nats.Msg) bool {
-	// 只匹配 Response Data
-	http, err := sonic.Get(m.Data, "http")
-	if err != nil {
-		// log.Errorf("worker unmarshal http failed: %s\n", err)
+func (p *Worker) processMsgHttp(msgHttp *model.MsgHttp, m *nats.Msg) bool {
+	// 只匹配 Request Body 和 Response Body
+	if msgHttp.Http.RespLen == 0 || len(msgHttp.Http.RespBody) == 0 {
 		return false
 	}
-	respBody, err := http.GetByPath("respBody").Raw()
-	if err != nil || len(respBody) == 0 {
-		return false
-	}
-	// log.Debugf("http resp %d: %s", len(respBody), respBody)
-	respBodyb := []byte(respBody)
+	respBodyb := []byte(msgHttp.Http.RespBody)
 
 	// 依次匹配正则表达式
 	reg_lable, reg_matched := p.matchReg(respBodyb)

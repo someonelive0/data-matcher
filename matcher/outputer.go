@@ -1,6 +1,7 @@
 package matcher
 
 import (
+	"data-matcher/model"
 	"data-matcher/utils"
 	"encoding/json"
 	"strings"
@@ -11,14 +12,14 @@ import (
 )
 
 type Outputer struct {
-	Outch          chan *nats.Msg `json:"-"`
-	Dnsch          chan *DnsItem  `json:"-"`
-	NatsConfig     *NatsConfig    `json:"-"`
-	Stats          *MyStatistic   `json:"-"`
-	CountMsg       uint64         `json:"count_msg"`
-	CountFailed    uint64         `json:"count_failed"`
-	CountDnsMsg    uint64         `json:"count_dns_msg"`
-	CountDnsFailed uint64         `json:"count_dns_failed"`
+	Outch          chan *nats.Msg     `json:"-"`
+	Dnsch          chan *model.MsgDns `json:"-"`
+	NatsConfig     *NatsConfig        `json:"-"`
+	Stats          *MyStatistic       `json:"-"`
+	CountMsg       uint64             `json:"count_msg"`
+	CountFailed    uint64             `json:"count_failed"`
+	CountDnsMsg    uint64             `json:"count_dns_msg"`
+	CountDnsFailed uint64             `json:"count_dns_failed"`
 
 	nc   *nats.Conn // 写http到jetstream
 	js   nats.JetStreamContext
@@ -148,12 +149,13 @@ func (p *Outputer) OutputHttp() (err error) {
 }
 
 func (p *Outputer) OutputDns() error {
-	for dnsitem := range p.Dnsch {
+	for msgDns := range p.Dnsch {
 		p.CountDnsMsg++
-		if _, err := p.kvb.Get(dnsitem.Rrname); err != nil { // 如果key不存在才Put
-			if _, err = p.kvb.PutString(dnsitem.Rrname, dnsitem.Value); err != nil {
+		if _, err := p.kvb.Get(msgDns.Dns.Rrname); err != nil { // 如果key不存在才Put
+			b, _ := json.Marshal(msgDns.Dns)
+			if _, err = p.kvb.Put(msgDns.Dns.Rrname, b); err != nil {
 				p.CountDnsFailed++
-				log.Errorf("ouputer set kv [%s] failed: %s", dnsitem.Rrname, err)
+				log.Errorf("ouputer set kv [%s] failed: %s", msgDns.Dns.Rrname, err)
 			} else {
 				p.Stats.DnsCount(1)
 			}

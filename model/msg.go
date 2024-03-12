@@ -13,7 +13,7 @@ package model
 type MsgHeader struct {
 	Timestamp     string `json:"timestamp"`
 	Response_time int    `json:"response_time"`
-	Flow_id       string `json:"flow_id"`
+	Flow_id       int    `json:"flow_id"`
 	Event_type    string `json:"event_type"` // event_type表示消息头之后的内容，包括： http, dns, ssh, rdp, elasticsearch, pop3, stmp
 	Src_mac       string `json:"src_mac"`
 	Src_ip        string `json:"src_ip"`
@@ -60,4 +60,37 @@ type HttpItem struct {
 type HttpHeader struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+/*
+ 当event_type=http时，后续内容为http消息
+*/
+type MsgDns struct {
+	MsgHeader
+	Dns DnsItem `json:"dns"`
+}
+
+/*
+ dns消息在 消息头之后，用"dns" JSON标签表示
+*/
+type DnsItem struct {
+	Version int                 `json:"version"`
+	Type    string              `json:"type"`
+	Dd      int                 `json:"id"`
+	Flags   string              `json:"flags"`
+	Qr      bool                `json:"qr"`
+	Rd      bool                `json:"rd"`
+	Ra      bool                `json:"ra"`
+	Rrname  string              `json:"rrname"`
+	Rrtype  string              `json:"rrtype"`
+	Rcode   string              `json:"rcode"`
+	Answers []DnsAnswer         `json:"answers"`
+	Grouped map[string][]string `json:"grouped"`
+}
+
+type DnsAnswer struct {
+	Rrname string `json:"rrname"`
+	Rrtype string `json:"rrtype"`
+	Ttl    int    `json:"ttl"`
+	Rdata  string `json:"rdata"`
 }
