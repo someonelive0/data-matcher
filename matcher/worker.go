@@ -17,8 +17,8 @@ type Worker struct {
 	Name            string               `json:"name"`
 	Flowch          chan *nats.Msg       `json:"-"`
 	Httpch          chan *model.MsgHttp  `json:"-"`
-	Outch           chan *model.MsgHttp  `json:"-"`
-	Dnsch           chan *model.MsgDns   `json:"-"`
+	Outhttpch       chan *model.MsgHttp  `json:"-"`
+	Outdnsch        chan *model.MsgDns   `json:"-"`
 	ValueRegs       []*engine.ValueRegex `json:"-"`
 	ColDicts        []*engine.ColDict    `json:"-"`
 	Appmap          *sync.Map            `json:"-"`
@@ -73,7 +73,7 @@ func (p *Worker) Run() {
 
 			// 匹配敏感规则，如果匹配到，则输出已匹配
 			if matched := p.processMsgHttp(msgHttp); matched {
-				p.Outch <- msgHttp
+				p.Outhttpch <- msgHttp
 			}
 
 			p.Httpch <- msgHttp // 进行后续处理，TODO 可能后续流程会有变化
@@ -85,7 +85,7 @@ func (p *Worker) Run() {
 				continue
 			}
 			if err = p.processMsgDns(msgDns); err == nil {
-				p.Dnsch <- msgDns
+				p.Outdnsch <- msgDns
 			}
 
 		default:

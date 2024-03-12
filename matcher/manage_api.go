@@ -28,8 +28,8 @@ type ManageApi struct {
 	Stats     *MyStatistic
 	Flowch    chan *nats.Msg
 	Httpch    chan *model.MsgHttp
-	Outch     chan *model.MsgHttp
-	Dnsch     chan *model.MsgDns
+	Outhttpch chan *model.MsgHttp
+	Outdnsch  chan *model.MsgDns
 	Inputer   *Inputer
 	Outputer  *Outputer
 	Workers   []*Worker

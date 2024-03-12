@@ -12,8 +12,8 @@ import (
 )
 
 type Outputer struct {
-	Outch          chan *model.MsgHttp `json:"-"`
-	Dnsch          chan *model.MsgDns  `json:"-"`
+	Outhttpch      chan *model.MsgHttp `json:"-"`
+	Outdnsch       chan *model.MsgDns  `json:"-"`
 	NatsConfig     *NatsConfig         `json:"-"`
 	Stats          *MyStatistic        `json:"-"`
 	CountMsg       uint64              `json:"count_msg"`
@@ -127,7 +127,7 @@ func (p *Outputer) Run() error {
 }
 
 func (p *Outputer) OutputHttp() (err error) {
-	for msgHttp := range p.Outch {
+	for msgHttp := range p.Outhttpch {
 		p.CountMsg++
 		b, _ := json.Marshal(msgHttp)
 		_, err = p.js.PublishAsync("match_flow.http", b) // 异步发布
@@ -139,10 +139,10 @@ func (p *Outputer) OutputHttp() (err error) {
 				p.CountFailed++
 				log.Errorf("ouputer jetstream async and sync pub failed: %s", err)
 			} else {
-				p.Stats.OutputCount(1)
+				p.Stats.OutputHttpCount(1)
 			}
 		} else {
-			p.Stats.OutputCount(1)
+			p.Stats.OutputHttpCount(1)
 		}
 	}
 
@@ -150,7 +150,7 @@ func (p *Outputer) OutputHttp() (err error) {
 }
 
 func (p *Outputer) OutputDns() error {
-	for msgDns := range p.Dnsch {
+	for msgDns := range p.Outdnsch {
 		p.CountDnsMsg++
 		if _, err := p.kvb.Get(msgDns.Dns.Rrname); err != nil { // 如果key不存在才Put
 			b, _ := json.Marshal(msgDns.Dns)
@@ -158,7 +158,7 @@ func (p *Outputer) OutputDns() error {
 				p.CountDnsFailed++
 				log.Errorf("ouputer set kv [%s] failed: %s", msgDns.Dns.Rrname, err)
 			} else {
-				p.Stats.DnsCount(1)
+				p.Stats.OutputDnsCount(1)
 			}
 		}
 	}

@@ -66,9 +66,9 @@ func main() {
 	// run inputer, receive nats msg to channel
 	runok := true // Exit when run is not ok
 	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)
-	var httpch = make(chan *model.MsgHttp, 10000)
-	var outch = make(chan *model.MsgHttp, myconfig.ChannelSize)
-	var dnsch = make(chan *model.MsgDns, myconfig.ChannelSize)
+	var httpch = make(chan *model.MsgHttp, 10000)                   // to post worker
+	var outhttpch = make(chan *model.MsgHttp, myconfig.ChannelSize) // to outputer
+	var outdnsch = make(chan *model.MsgDns, myconfig.ChannelSize)   // to outputer
 	var stats = matcher.NewMyStatistic(START_TIME)
 
 	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer
@@ -84,8 +84,8 @@ func main() {
 	// run outputer
 	var wg sync.WaitGroup
 	var outputer = matcher.Outputer{
-		Outch:      outch,
-		Dnsch:      dnsch,
+		Outhttpch:  outhttpch,
+		Outdnsch:   outdnsch,
 		NatsConfig: &myconfig.NatsConfig,
 		Stats:      stats,
 	}
@@ -108,8 +108,8 @@ func main() {
 			Name:      strconv.Itoa(i),
 			Flowch:    flowch,
 			Httpch:    httpch,
-			Outch:     outch,
-			Dnsch:     dnsch,
+			Outhttpch: outhttpch,
+			Outdnsch:  outdnsch,
 			ValueRegs: regs,
 			ColDicts:  dicts,
 			Appmap:    &appmap,
@@ -149,8 +149,8 @@ func main() {
 		Stats:          stats,
 		Flowch:         flowch,
 		Httpch:         httpch,
-		Outch:          outch,
-		Dnsch:          dnsch,
+		Outhttpch:      outhttpch,
+		Outdnsch:       outdnsch,
 		Inputer:        &inputer,
 		Outputer:       &outputer,
 		Workers:        workers,
@@ -182,8 +182,8 @@ func main() {
 		close(flowch)
 		wgWokers.Wait()
 		close(httpch)
-		close(outch)
-		close(dnsch)
+		close(outhttpch)
+		close(outdnsch)
 		post_worker.Stop()
 		outputer.Stop()
 		// waitChanEmpty(chan_stlog_0, chan_stlog_1)
