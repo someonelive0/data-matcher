@@ -1,0 +1,63 @@
+package model
+
+/*
+ 来自 Kafka 的消息样本，这些消息有流转探针turboflow产生，写入kafka
+
+ 具体样本参考 msg_sample.md
+*/
+
+/*
+ 每一个消息都具有消息头，但是缺个版本描述，
+ event_type 用来区分消息头之后的具体内容，event_type包括： http, dns, ssh, rdp, elasticsearch, pop3, stmp
+*/
+type MsgHeader struct {
+	Timestamp     string `json:"timestamp"`
+	Response_time int    `json:"response_time"`
+	Flow_id       string `json:"flow_id"`
+	Event_type    string `json:"event_type"` // event_type表示消息头之后的内容，包括： http, dns, ssh, rdp, elasticsearch, pop3, stmp
+	Src_mac       string `json:"src_mac"`
+	Src_ip        string `json:"src_ip"`
+	Src_port      int    `json:"src_port"`
+	Dst_mac       string `json:"dst_mac"`
+	Dest_ip       string `json:"dest_ip"`
+	Dest_port     int    `json:"dest_port"`
+	Proto         string `json:"proto"`
+	Tx_id         int    `json:"tx_id"`
+	Host          string `json:"host"`
+}
+
+/*
+ 当event_type=http时，后续内容为http消息
+*/
+type MsgHttp struct {
+	MsgHeader
+	Http HttpItem `json:"http"`
+}
+
+/*
+ http消息在 消息头之后，用"http" JSON标签表示
+*/
+type HttpItem struct {
+	Hostname          string       `json:"hostname"`
+	Url               string       `json:"url"`
+	Http_user_agent   string       `json:"http_user_agent"`
+	Http_content_type string       `json:"http_content_type"`
+	Http_method       string       `json:"http_method"`
+	Protocol          string       `json:"protocol"`
+	Status            int          `json:"status"`
+	Length            int          `json:"length"`
+	Request_headers   []HttpHeader `json:"request_headers"`
+	Response_headers  []HttpHeader `json:"response_headers"`
+	ReqHeaders        string       `json:"reqHeaders"`
+	ReqBody           string       `json:"reqBody"`
+	ReqLen            int          `json:"reqLen"`
+	RespHeaders       string       `json:"respHeaders"`
+	RespBody          string       `json:"respBody"`
+	RespLen           int          `json:"respLen"`
+	TotalLen          int          `json:"totalLen"`
+}
+
+type HttpHeader struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}

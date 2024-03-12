@@ -10,11 +10,13 @@ import (
 	"github.com/wasilibs/go-re2"
 
 	"data-matcher/engine"
+	"data-matcher/model"
 )
 
 type Worker struct {
 	Name            string               `json:"name"`
 	Flowch          chan *nats.Msg       `json:"-"`
+	Httpch          chan *model.MsgHttp  `json:"-"`
 	Outch           chan *nats.Msg       `json:"-"`
 	Dnsch           chan *DnsItem        `json:"-"`
 	ValueRegs       []*engine.ValueRegex `json:"-"`
@@ -55,14 +57,7 @@ func (p *Worker) Run() {
 		p.Name, len(p.ValueRegs), len(p.ColDicts))
 	p.CountMsg, p.CountMatchRegex, p.CountMatchDict = 0, 0, 0
 
-	httpch := make(chan interface{}, 1)
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		p.processHttp(httpch)
-	}()
-
+	var err error
 	for m := range p.Flowch {
 		p.CountMsg++
 		// log.Debugf(m.Size(), len(m.Data))
@@ -70,14 +65,19 @@ func (p *Worker) Run() {
 		// 处理消息
 		switch m.Subject {
 		case "flow.http":
-			// if matched := p.proccessHttp(m); matched {
-			// 	p.Outch <- m
-			// }
-			httpch <- m
+			msgHttp := &model.MsgHttp{}
+			if err = json.Unmarshal(m.Data, msgHttp); err != nil {
+				p.Httpch <- msgHttp
+			}
+			if matched := p.processHttp(m); matched {
+				p.Outch <- m
+			}
+
 		case "flow.dns":
 			if dnsitem, err := p.processDns(m); err == nil {
 				p.Dnsch <- dnsitem
 			}
+
 		default:
 		}
 
@@ -87,8 +87,6 @@ func (p *Worker) Run() {
 		}
 	}
 
-	close(httpch)
-	wg.Wait()
 }
 
 func (p *Worker) Dump() []byte {

@@ -15,6 +15,7 @@ import (
 
 	"data-matcher/engine"
 	"data-matcher/matcher"
+	"data-matcher/model"
 	"data-matcher/utils"
 )
 
@@ -65,9 +66,11 @@ func main() {
 	// run inputer, receive nats msg to channel
 	runok := true // Exit when run is not ok
 	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)
+	var httpch = make(chan *model.MsgHttp, 10000)
 	var outch = make(chan *nats.Msg, myconfig.ChannelSize)
 	var dnsch = make(chan *matcher.DnsItem, myconfig.ChannelSize)
 	var stats = matcher.NewMyStatistic(START_TIME)
+
 	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer
 		Flowch:     flowch,
 		NatsConfig: &myconfig.NatsConfig,
@@ -104,6 +107,7 @@ func main() {
 		worker := &matcher.Worker{
 			Name:      strconv.Itoa(i),
 			Flowch:    flowch,
+			Httpch:    httpch,
 			Outch:     outch,
 			Dnsch:     dnsch,
 			ValueRegs: regs,
@@ -126,6 +130,16 @@ func main() {
 			workers[i].Run()
 		}(i)
 	}
+
+	// run post-worker
+	var post_worker = matcher.PostWorker{
+		Httpch: httpch,
+	}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		post_worker.Run()
+	}()
 
 	// run manage api
 	var myapi = matcher.ManageApi{
@@ -166,8 +180,10 @@ func main() {
 		inputer.Stop()
 		close(flowch)
 		wgWokers.Wait()
+		close(httpch)
 		close(outch)
 		close(dnsch)
+		post_worker.Stop()
 		outputer.Stop()
 		// waitChanEmpty(chan_stlog_0, chan_stlog_1)
 		myapi.Stop()
