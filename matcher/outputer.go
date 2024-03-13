@@ -180,8 +180,8 @@ func (p *Outputer) Stop() error {
 		p.nc = nil
 	}
 	if p.nckv != nil {
-		p.nc.Close()
-		p.nc = nil
+		p.nckv.Close()
+		p.nckv = nil
 	}
 	return nil
 }

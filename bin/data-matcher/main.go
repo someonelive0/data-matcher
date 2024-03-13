@@ -64,9 +64,9 @@ func main() {
 	log.Infof("load column dicts in rules config number %d", len(dicts))
 
 	// run inputer, receive nats msg to channel
-	runok := true // Exit when run is not ok
-	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)
-	var httpch = make(chan *model.MsgHttp, 10000)                   // to post worker
+	runok := true                                                   // Exit when run is not ok
+	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)         // input channel
+	var httpch = make(chan *model.MsgHttp, myconfig.ChannelSize)    // to post worker
 	var outhttpch = make(chan *model.MsgHttp, myconfig.ChannelSize) // to outputer
 	var outdnsch = make(chan *model.MsgDns, myconfig.ChannelSize)   // to outputer
 	var stats = matcher.NewMyStatistic(START_TIME)
@@ -133,12 +133,15 @@ func main() {
 
 	// run post-worker
 	var post_worker = matcher.PostWorker{
-		Httpch: httpch,
+		Httpch:     httpch,
+		NatsConfig: &myconfig.NatsConfig,
 	}
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		post_worker.Run()
+		if err = post_worker.Run(); err != nil {
+			runok = false
+		}
 	}()
 
 	// run manage api

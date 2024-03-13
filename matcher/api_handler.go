@@ -23,6 +23,7 @@ func (p *ManageApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	s += fmt.Sprintf(`, "output_dns_channel": {"len": %d, "cap": %d} }`, len(p.Outdnsch), cap(p.Outdnsch))
 	s += fmt.Sprintf(`, "inputer": %s`, p.Inputer.Dump())
 	s += fmt.Sprintf(`, "outputer": %s`, p.Outputer.Dump())
+	s += fmt.Sprintf(`, "post_worker": %s`, p.PostWorker.Dump())
 	b, _ := json.Marshal(p.Workers)
 	s += fmt.Sprintf(`, "worker": %s`, b)
 	s += `, "rule": {`
