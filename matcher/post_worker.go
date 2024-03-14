@@ -97,19 +97,86 @@ func (p *PostWorker) Run() error {
 		return err
 	}
 
+	// Fan out msg to all msg processer
+	var wg sync.WaitGroup
+
+	// 发现APP协程
+	var discoverAppChan = make(chan *model.MsgHttp)
+	wg.Add(1)
+	go func(ch chan *model.MsgHttp) {
+		defer wg.Done()
+		for msgHttp := range ch {
+			p.discoverApp(msgHttp)
+		}
+	}(discoverAppChan)
+
+	// 发现API协程
+	var discoverApiChan = make(chan *model.MsgHttp)
+	wg.Add(1)
+	go func(ch chan *model.MsgHttp) {
+		defer wg.Done()
+		for msgHttp := range ch {
+			p.discoverApi(msgHttp)
+		}
+	}(discoverApiChan)
+
+	// 发现IP协程
+	var discoverIpChan = make(chan *model.MsgHttp)
+	wg.Add(1)
+	go func(ch chan *model.MsgHttp) {
+		defer wg.Done()
+		for msgHttp := range ch {
+			p.discoverIp(msgHttp)
+		}
+	}(discoverIpChan)
+
+	// 发现Account协程
+	var discoverAccountChan = make(chan *model.MsgHttp)
+	wg.Add(1)
+	go func(ch chan *model.MsgHttp) {
+		defer wg.Done()
+		for msgHttp := range ch {
+			p.discoverAccount(msgHttp)
+		}
+	}(discoverAccountChan)
+
+	// 获取Token协程
+	var disposeTokenChan = make(chan *model.MsgHttp)
+	wg.Add(1)
+	go func(ch chan *model.MsgHttp) {
+		defer wg.Done()
+		for msgHttp := range ch {
+			p.disposeToken(msgHttp)
+		}
+	}(disposeTokenChan)
+
+	// 获取Username协程
+	var disposeUsernameChan = make(chan *model.MsgHttp)
+	wg.Add(1)
+	go func(ch chan *model.MsgHttp) {
+		defer wg.Done()
+		for msgHttp := range ch {
+			p.disposeUsername(msgHttp)
+		}
+	}(disposeUsernameChan)
+
 	for msgHttp := range p.Httpch {
-		p.discoverApp(msgHttp)
-
-		p.discoverApi(msgHttp)
-
-		p.discoverIp(msgHttp)
-
-		p.discoverAccount(msgHttp)
-
-		p.disposeToken(msgHttp)
-
-		p.disposeUsername(msgHttp)
+		discoverAppChan <- msgHttp
+		discoverApiChan <- msgHttp
+		discoverIpChan <- msgHttp
+		discoverAccountChan <- msgHttp
+		disposeTokenChan <- msgHttp
+		disposeUsernameChan <- msgHttp
 	}
+
+	// 当p.Httpch被关闭后，关闭下游的所有协程channel，使协程退出
+	close(discoverAppChan)
+	close(discoverApiChan)
+	close(discoverIpChan)
+	close(discoverAccountChan)
+	close(disposeTokenChan)
+	close(disposeUsernameChan)
+	wg.Wait()
 
 	return nil
 }
@@ -131,7 +198,7 @@ func (p *PostWorker) discoverApp(msgHttp *model.MsgHttp) error {
 	// 或者 www.oldkids.cn?<script>cross_site_scripting.nasl
 	// 或者 hostname='
 	hostname := msgHttp.Http.Hostname
-	if n := strings.IndexAny(hostname, "/?='<%"); n != -1 {
+	if n := strings.IndexAny(hostname, "/?='<%("); n != -1 {
 		hostname = hostname[:n]
 	}
 

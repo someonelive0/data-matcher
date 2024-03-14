@@ -3,7 +3,11 @@
 
 # 说明
 
-从Nats以队列方式读取消息，然后并行匹配
+从Nats以队列方式读取消息，然后并行匹配。
+
+流程基本是先load balance，分配消息给多协程进行正则和关键字匹配；然后汇集后再 fan out，业务协程共同处理消息
+
+inputer --> load balance --> workers... --> fan out --> post_worker
 
 
 # 优化
