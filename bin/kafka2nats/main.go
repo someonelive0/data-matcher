@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 	"sync"
@@ -49,6 +51,7 @@ func main() {
 
 	var ch = make(chan []byte)
 	var wg sync.WaitGroup
+	var ctx, cancel = context.WithCancel(context.Background())
 
 	wg.Add(1)
 	go func() {
@@ -59,14 +62,22 @@ func main() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		input(ch, &myconfig.KafkaConfig, myconfig.Kafka2Nats.Topic)
+		input(ctx, ch, &myconfig.KafkaConfig, myconfig.Kafka2Nats.Topic)
 	}()
 
-	wg.Wait()
+	// wait until graceful exit
+	signalChan := utils.NewShutdownSignal()
+	utils.WaitExit(signalChan, func() {
+		log.Infof("receive exit signal, exit...")
+		// your clean code
+		cancel()
+		close(ch)
+		wg.Wait()
+	})
 }
 
 // 从kafka读入数据，写入channel
-func input(ch chan []byte, kafkaConfig *KafkaConfig, topic string) error {
+func input(ctx context.Context, ch chan []byte, kafkaConfig *KafkaConfig, topic string) error {
 	dialer := &kafka.Dialer{
 		Timeout:       10 * time.Second,
 		DualStack:     true,
@@ -98,15 +109,23 @@ func input(ch chan []byte, kafkaConfig *KafkaConfig, topic string) error {
 	log.Infof("connect kafka %v with user [%s] success", kafkaConfig.Brokers, kafkaConfig.User)
 
 	// TODO, 利用context，从main() 来取消阻塞执行的 FetchMessage，并退出
-	ctx := context.Background()
+	// ctx := context.Background()
 	for {
 		// 获取消息
 		m, err := r.FetchMessage(ctx)
 		if err != nil {
+			if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+				log.Debugf("kafka get context canceled:%v", err)
+				break
+			}
+			if errors.Is(err, io.EOF) { // 当reader.Close后，进入这个分支
+				log.Debugf("kafka get eof")
+				break
+			}
+
 			log.Errorf("FetchMessage error: %s", err)
 
 			// TODO, 考虑这里需要进行Kafka重连，而不是break循环
-			// break
 			time.Sleep(3 * time.Second)
 			continue
 		}
@@ -121,7 +140,7 @@ func input(ch chan []byte, kafkaConfig *KafkaConfig, topic string) error {
 		// 	log.Fatal("failed to commit messages:", err)
 		// }
 	}
-	close(ch)
+	// log.Debugf("input end")
 
 	return nil
 }
