@@ -1,5 +1,5 @@
-PREFIX=/opt/idss
-VERSION=1.0
+VERSION=3.0.0
+PREFIX=target/data-matcher-$(VERSION)
 
 # go command for linux and windows.
 GO=CGO_ENABLED=0 go
@@ -11,20 +11,25 @@ UPX=upx
 PRGS=data-matcher kafka2nats
 
 
-all:	$(PRGS)
+all:    $(PRGS)
 
 data-matcher:
-	$(GO) build $(PARAMS) -o $@ ./bin/data-matcher
+        $(GO) build $(PARAMS) -o $@ ./bin/data-matcher
 
 kafka2nats:
-	$(GO) build $(PARAMS) -o $@ ./bin/kafka2nats
+        $(GO) build $(PARAMS) -o $@ ./bin/kafka2nats
 
 clean:
-	rm -f $(PRGS)
+        rm -f $(PRGS)
+
+.PHONY: ./test
+test:
+        $(GO) test ./engine ./matcher ./model ./test
 
 install:
-	$(UPX) $(PRGS) || echo $?
-	mkdir -p $(PREFIX)-$(VERSION)/etc
-	ln -snf $(PREFIX)-$(VERSION) $(PREFIX)
-	cp -a etc/*.tpl $(PREFIX)/etc
-	cp -a  Changelog.md $(PRGS) $(PREFIX)
+        $(UPX) $(PRGS) || echo $?
+        mkdir -p $(PREFIX)/etc
+        cp -a etc/*.tpl $(PREFIX)/etc
+        cp -a  Changelog.md $(PRGS) $(PREFIX)
+
+        cd `dirname $(PREFIX)` && tar cvfz `basename $(PREFIX)`.tar.gz `basename $(PREFIX)`
