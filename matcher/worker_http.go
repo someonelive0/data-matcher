@@ -6,22 +6,22 @@ import (
 	"data-matcher/model"
 )
 
-// process msg of subject flow.http
-func (p *Worker) processMsgHttp(msgHttp *model.MsgHttp) bool {
+// process flow msg of subject flow.http
+func (p *Worker) processFlowHttp(flowHttp *model.FlowHttp) bool {
 	// 只匹配 Request Body 和 Response Body
-	if msgHttp.Http.RespLen == 0 || len(msgHttp.Http.RespBody) == 0 {
+	if flowHttp.Http.RespLen == 0 || len(flowHttp.Http.RespBody) == 0 {
 		return false
 	}
-	respBodyb := []byte(msgHttp.Http.RespBody)
+	respBodyb := []byte(flowHttp.Http.RespBody)
 
 	// 依次匹配正则表达式
-	msgHttp.Http.Value_regex = p.matchReg(respBodyb)
+	flowHttp.Http.Value_regex = p.matchReg(respBodyb)
 
 	// 一次多模式匹配Dictionary
-	msgHttp.Http.Column_dict = p.matchDict(respBodyb)
+	flowHttp.Http.Column_dict = p.matchDict(respBodyb)
 
 	// 如果匹配到了正则或字典，写入输出队列
-	if msgHttp.Http.Value_regex != nil || msgHttp.Http.Column_dict != nil {
+	if flowHttp.Http.Value_regex != nil || flowHttp.Http.Column_dict != nil {
 		return true
 	}
 

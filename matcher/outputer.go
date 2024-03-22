@@ -12,14 +12,14 @@ import (
 )
 
 type Outputer struct {
-	Outhttpch      chan *model.MsgHttp `json:"-"`
-	Outdnsch       chan *model.MsgDns  `json:"-"`
-	NatsConfig     *NatsConfig         `json:"-"`
-	Stats          *MyStatistic        `json:"-"`
-	CountMsg       uint64              `json:"count_msg"`
-	CountFailed    uint64              `json:"count_failed"`
-	CountDnsMsg    uint64              `json:"count_dns_msg"`
-	CountDnsFailed uint64              `json:"count_dns_failed"`
+	Outhttpch      chan *model.FlowHttp `json:"-"`
+	Outdnsch       chan *model.FlowDns  `json:"-"`
+	NatsConfig     *NatsConfig          `json:"-"`
+	Stats          *MyStatistic         `json:"-"`
+	CountMsg       uint64               `json:"count_msg"`
+	CountFailed    uint64               `json:"count_failed"`
+	CountDnsMsg    uint64               `json:"count_dns_msg"`
+	CountDnsFailed uint64               `json:"count_dns_failed"`
 
 	nc   *nats.Conn // 写http到jetstream
 	js   nats.JetStreamContext
@@ -88,7 +88,7 @@ func (p *Outputer) init() error {
 				MaxValueSize: -1, // 1024 * 1024,            // 1MiB,
 			})
 			if err != nil {
-				log.Errorf("ouputer create nats keyvalue failed %s", err)
+				log.Errorf("ouputer create nats keyvalue dns failed %s", err)
 				return err
 			}
 		}
@@ -127,9 +127,9 @@ func (p *Outputer) Run() error {
 }
 
 func (p *Outputer) OutputHttp() (err error) {
-	for msgHttp := range p.Outhttpch {
+	for flowHttp := range p.Outhttpch {
 		p.CountMsg++
-		b, _ := json.Marshal(msgHttp)
+		b, _ := json.Marshal(flowHttp)
 		_, err = p.js.PublishAsync("match_flow.http", b) // 异步发布
 		if err != nil {
 			log.Warnf("ouputer jetstream async pub failed: %s", err)
@@ -150,19 +150,19 @@ func (p *Outputer) OutputHttp() (err error) {
 }
 
 func (p *Outputer) OutputDns() error {
-	for msgDns := range p.Outdnsch {
+	for flowDns := range p.Outdnsch {
 		p.CountDnsMsg++
-		go func(msgDns *model.MsgDns) { // 写dns到nats keyvalue store 太慢，所以用异步写
-			if _, err := p.kvb.Get(msgDns.Dns.Rrname); err != nil { // 如果key不存在才Put
-				b, _ := json.Marshal(msgDns.Dns)
-				if _, err = p.kvb.Put(msgDns.Dns.Rrname, b); err != nil {
+		go func(flowDns *model.FlowDns) { // 写dns到nats keyvalue store 太慢，所以用异步写
+			if _, err := p.kvb.Get(flowDns.Dns.Rrname); err != nil { // 如果key不存在才Put
+				b, _ := json.Marshal(flowDns.Dns)
+				if _, err = p.kvb.Put(flowDns.Dns.Rrname, b); err != nil {
 					p.CountDnsFailed++
-					log.Errorf("ouputer set kv [%s] failed: %s", msgDns.Dns.Rrname, err)
+					log.Errorf("ouputer set kv [%s] failed: %s", flowDns.Dns.Rrname, err)
 				} else {
 					p.Stats.OutputDnsCount(1)
 				}
 			}
-		}(msgDns)
+		}(flowDns)
 	}
 
 	return nil

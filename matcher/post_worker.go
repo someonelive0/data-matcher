@@ -14,11 +14,11 @@ import (
 )
 
 type PostWorker struct {
-	Httpch     chan *model.MsgHttp `json:"-"`
-	NatsConfig *NatsConfig         `json:"-"`
-	AppMap     sync.Map            `json:"-"` // app, number
-	ApiMap     sync.Map            `json:"-"` // api, number
-	IpMap      sync.Map            `json:"-"` // client ip, number
+	Httpch     chan *model.FlowHttp `json:"-"`
+	NatsConfig *NatsConfig          `json:"-"`
+	AppMap     sync.Map             `json:"-"` // app, number
+	ApiMap     sync.Map             `json:"-"` // api, number
+	IpMap      sync.Map             `json:"-"` // client ip, number
 
 	CountApp    uint64 `json:"count_app"`
 	CountApi    uint64 `json:"count_api"`
@@ -101,72 +101,72 @@ func (p *PostWorker) Run() error {
 	var wg sync.WaitGroup
 
 	// 发现APP协程
-	var discoverAppChan = make(chan *model.MsgHttp)
+	var discoverAppChan = make(chan *model.FlowHttp)
 	wg.Add(1)
-	go func(ch chan *model.MsgHttp) {
+	go func(ch chan *model.FlowHttp) {
 		defer wg.Done()
-		for msgHttp := range ch {
-			p.discoverApp(msgHttp)
+		for flowHttp := range ch {
+			p.discoverApp(flowHttp)
 		}
 	}(discoverAppChan)
 
 	// 发现API协程
-	var discoverApiChan = make(chan *model.MsgHttp)
+	var discoverApiChan = make(chan *model.FlowHttp)
 	wg.Add(1)
-	go func(ch chan *model.MsgHttp) {
+	go func(ch chan *model.FlowHttp) {
 		defer wg.Done()
-		for msgHttp := range ch {
-			p.discoverApi(msgHttp)
+		for flowHttp := range ch {
+			p.discoverApi(flowHttp)
 		}
 	}(discoverApiChan)
 
 	// 发现IP协程
-	var discoverIpChan = make(chan *model.MsgHttp)
+	var discoverIpChan = make(chan *model.FlowHttp)
 	wg.Add(1)
-	go func(ch chan *model.MsgHttp) {
+	go func(ch chan *model.FlowHttp) {
 		defer wg.Done()
-		for msgHttp := range ch {
-			p.discoverIp(msgHttp)
+		for flowHttp := range ch {
+			p.discoverIp(flowHttp)
 		}
 	}(discoverIpChan)
 
 	// 发现Account协程
-	var discoverAccountChan = make(chan *model.MsgHttp)
+	var discoverAccountChan = make(chan *model.FlowHttp)
 	wg.Add(1)
-	go func(ch chan *model.MsgHttp) {
+	go func(ch chan *model.FlowHttp) {
 		defer wg.Done()
-		for msgHttp := range ch {
-			p.discoverAccount(msgHttp)
+		for flowHttp := range ch {
+			p.discoverAccount(flowHttp)
 		}
 	}(discoverAccountChan)
 
 	// 获取Token协程
-	var disposeTokenChan = make(chan *model.MsgHttp)
+	var disposeTokenChan = make(chan *model.FlowHttp)
 	wg.Add(1)
-	go func(ch chan *model.MsgHttp) {
+	go func(ch chan *model.FlowHttp) {
 		defer wg.Done()
-		for msgHttp := range ch {
-			p.disposeToken(msgHttp)
+		for flowHttp := range ch {
+			p.disposeToken(flowHttp)
 		}
 	}(disposeTokenChan)
 
 	// 获取Username协程
-	var disposeUsernameChan = make(chan *model.MsgHttp)
+	var disposeUsernameChan = make(chan *model.FlowHttp)
 	wg.Add(1)
-	go func(ch chan *model.MsgHttp) {
+	go func(ch chan *model.FlowHttp) {
 		defer wg.Done()
-		for msgHttp := range ch {
-			p.disposeUsername(msgHttp)
+		for flowHttp := range ch {
+			p.disposeUsername(flowHttp)
 		}
 	}(disposeUsernameChan)
 
-	for msgHttp := range p.Httpch {
-		discoverAppChan <- msgHttp
-		discoverApiChan <- msgHttp
-		discoverIpChan <- msgHttp
-		discoverAccountChan <- msgHttp
-		disposeTokenChan <- msgHttp
-		disposeUsernameChan <- msgHttp
+	for flowHttp := range p.Httpch {
+		discoverAppChan <- flowHttp
+		discoverApiChan <- flowHttp
+		discoverIpChan <- flowHttp
+		discoverAccountChan <- flowHttp
+		disposeTokenChan <- flowHttp
+		disposeUsernameChan <- flowHttp
 	}
 
 	// 当p.Httpch被关闭后，关闭下游的所有协程channel，使协程退出
@@ -192,17 +192,17 @@ func (p *PostWorker) Stop() {
 }
 
 // discover app from msg of subject flow.http
-func (p *PostWorker) discoverApp(msgHttp *model.MsgHttp) error {
+func (p *PostWorker) discoverApp(flowHttp *model.FlowHttp) error {
 
 	// 由于消息中的hostname可能含有路径，需求去除，例如  "hostname": "mzzj.sh.gov.cn/..",
 	// 或者 www.oldkids.cn?<script>cross_site_scripting.nasl
 	// 或者 hostname='
-	hostname := msgHttp.Http.Hostname
+	hostname := flowHttp.Http.Hostname
 	if n := strings.IndexAny(hostname, "/?='<%("); n != -1 {
 		hostname = hostname[:n]
 	}
 
-	app := fmt.Sprintf("%s/%s/%d", hostname, msgHttp.Dest_ip, msgHttp.Dest_port)
+	app := fmt.Sprintf("%s/%s/%d", hostname, flowHttp.Dest_ip, flowHttp.Dest_port)
 	_, ok := p.AppMap.Load(app)
 	if !ok {
 		p.AppMap.Store(app, 1)
@@ -219,8 +219,8 @@ func (p *PostWorker) discoverApp(msgHttp *model.MsgHttp) error {
 }
 
 // discover api from msg of subject flow.http
-func (p *PostWorker) discoverApi(msgHttp *model.MsgHttp) error {
-	api := msgHttp.Http.Url
+func (p *PostWorker) discoverApi(flowHttp *model.FlowHttp) error {
+	api := flowHttp.Http.Url
 	i := strings.IndexByte(api, '?') // erase ?
 	if i != -1 {
 		api = api[:i]
@@ -230,7 +230,7 @@ func (p *PostWorker) discoverApi(msgHttp *model.MsgHttp) error {
 		api = api[:i]
 	}
 
-	api = msgHttp.Http.Hostname + api
+	api = flowHttp.Http.Hostname + api
 	_, ok := p.ApiMap.Load(api)
 	if !ok {
 		p.ApiMap.Store(api, 1)
@@ -240,35 +240,35 @@ func (p *PostWorker) discoverApi(msgHttp *model.MsgHttp) error {
 }
 
 // dispose username from msg of subject flow.http
-func (p *PostWorker) disposeUsername(msgHttp *model.MsgHttp) error {
+func (p *PostWorker) disposeUsername(flowHttp *model.FlowHttp) error {
 	return nil
 }
 
 // dispose token from msg of subject flow.http
-func (p *PostWorker) disposeToken(msgHttp *model.MsgHttp) error {
+func (p *PostWorker) disposeToken(flowHttp *model.FlowHttp) error {
 	return nil
 }
 
 // discover account from msg of subject flow.http
-func (p *PostWorker) discoverAccount(msgHttp *model.MsgHttp) error {
+func (p *PostWorker) discoverAccount(flowHttp *model.FlowHttp) error {
 	return nil
 }
 
 // discover client ip from msg of subject flow.http
-func (p *PostWorker) discoverIp(msgHttp *model.MsgHttp) error {
-	if len(msgHttp.Src_ip) == 0 {
+func (p *PostWorker) discoverIp(flowHttp *model.FlowHttp) error {
+	if len(flowHttp.Src_ip) == 0 {
 		return nil
 	}
 
-	_, ok := p.IpMap.Load(msgHttp.Src_ip)
+	_, ok := p.IpMap.Load(flowHttp.Src_ip)
 	if !ok {
-		p.IpMap.Store(msgHttp.Src_ip, 1)
+		p.IpMap.Store(flowHttp.Src_ip, 1)
 		p.CountIp++
 
 		// 记录本地Map同时写入nats keyvalue store
-		if _, err := p.ipkvb.Put(msgHttp.Src_ip, []byte{}); err != nil {
+		if _, err := p.ipkvb.Put(flowHttp.Src_ip, []byte{}); err != nil {
 			// p.CountDnsFailed++
-			log.Errorf("post_worker set ip kv [%s] failed: %s", msgHttp.Src_ip, err)
+			log.Errorf("post_worker set ip kv [%s] failed: %s", flowHttp.Src_ip, err)
 		}
 	}
 

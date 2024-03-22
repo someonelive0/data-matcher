@@ -1,0 +1,171 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Generated schema for Root",
+    "type": "object",
+    "properties": {
+      "timestamp": {
+        "type": "string"
+      },
+      "response_time": {
+        "type": "number"
+      },
+      "flow_id": {
+        "type": "number"
+      },
+      "event_type": {
+        "type": "string"
+      },
+      "pcap_filename": {
+        "type": "string"
+      },
+      "src_mac": {
+        "type": "string"
+      },
+      "src_ip": {
+        "type": "string"
+      },
+      "src_port": {
+        "type": "number"
+      },
+      "dst_mac": {
+        "type": "string"
+      },
+      "dest_ip": {
+        "type": "string"
+      },
+      "dest_port": {
+        "type": "number"
+      },
+      "proto": {
+        "type": "string"
+      },
+      "tx_id": {
+        "type": "number"
+      },
+      "http": {
+        "type": "object",
+        "properties": {
+          "hostname": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "http_user_agent": {
+            "type": "string"
+          },
+          "http_content_type": {
+            "type": "string"
+          },
+          "http_method": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "status": {
+            "type": "number"
+          },
+          "length": {
+            "type": "number"
+          },
+          "request_headers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ]
+            }
+          },
+          "response_headers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "value"
+              ]
+            }
+          },
+          "reqHeaders": {
+            "type": "string"
+          },
+          "reqBody": {
+            "type": "string"
+          },
+          "reqLen": {
+            "type": "number"
+          },
+          "respHeaders": {
+            "type": "string"
+          },
+          "respBody": {
+            "type": "string"
+          },
+          "respLen": {
+            "type": "number"
+          },
+          "totalLen": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "hostname",
+          "url",
+          "http_user_agent",
+          "http_content_type",
+          "http_method",
+          "protocol",
+          "status",
+          "length",
+          "request_headers",
+          "response_headers",
+          "reqHeaders",
+          "reqBody",
+          "reqLen",
+          "respHeaders",
+          "respBody",
+          "respLen",
+          "totalLen"
+        ]
+      },
+      "host": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "timestamp",
+      "response_time",
+      "flow_id",
+      "event_type",
+      "pcap_filename",
+      "src_mac",
+      "src_ip",
+      "src_port",
+      "dst_mac",
+      "dest_ip",
+      "dest_port",
+      "proto",
+      "tx_id",
+      "http",
+      "host"
+    ]
+  }

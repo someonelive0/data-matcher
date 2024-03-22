@@ -3,14 +3,14 @@ package model
 /*
  来自 Kafka 的消息样本，这些消息有流转探针turboflow产生，写入kafka
 
- 具体样本参考 msg_sample.md
+ 具体样本参考 flow_msg_sample.md
 */
 
 /*
  每一个消息都具有消息头，但是缺个版本描述，
  event_type 用来区分消息头之后的具体内容，event_type包括： http, dns, ssh, rdp, elasticsearch, pop3, stmp
 */
-type MsgHeader struct {
+type FlowHeader struct {
 	Timestamp     string `json:"timestamp"`
 	Response_time int    `json:"response_time"`
 	Flow_id       int    `json:"flow_id"`
@@ -29,15 +29,15 @@ type MsgHeader struct {
 /*
  当event_type=http时，后续内容为http消息
 */
-type MsgHttp struct {
-	MsgHeader
-	Http HttpItem `json:"http"`
+type FlowHttp struct {
+	FlowHeader
+	Http HttpMsg `json:"http"`
 }
 
 /*
  http消息在 消息头之后，用"http" JSON标签表示
 */
-type HttpItem struct {
+type HttpMsg struct {
 	Hostname          string       `json:"hostname"`
 	Url               string       `json:"url"`
 	Http_user_agent   string       `json:"http_user_agent"`
@@ -80,15 +80,15 @@ type DictMatched struct {
 /*
  当event_type=http时，后续内容为http消息
 */
-type MsgDns struct {
-	MsgHeader
-	Dns DnsItem `json:"dns"`
+type FlowDns struct {
+	FlowHeader
+	Dns DnsMsg `json:"dns"`
 }
 
 /*
  dns消息在 消息头之后，用"dns" JSON标签表示
 */
-type DnsItem struct {
+type DnsMsg struct {
 	Version int                 `json:"version"`
 	Type    string              `json:"type"`
 	Dd      int                 `json:"id"`

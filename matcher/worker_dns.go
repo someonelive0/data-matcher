@@ -6,8 +6,8 @@ import (
 	"data-matcher/model"
 )
 
-func (p *Worker) processMsgDns(msgDns *model.MsgDns) error {
-	if len(msgDns.Dns.Rrname) == 0 {
+func (p *Worker) processFlowDns(flowDns *model.FlowDns) error {
+	if len(flowDns.Dns.Rrname) == 0 {
 		return fmt.Errorf("rrname is empty")
 	}
 

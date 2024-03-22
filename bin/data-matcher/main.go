@@ -64,11 +64,11 @@ func main() {
 	log.Infof("load column dicts in rules config number %d", len(dicts))
 
 	// run inputer, receive nats msg to channel
-	runok := true                                                   // Exit when run is not ok
-	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)         // input channel
-	var httpch = make(chan *model.MsgHttp, myconfig.ChannelSize)    // to post worker
-	var outhttpch = make(chan *model.MsgHttp, myconfig.ChannelSize) // to outputer
-	var outdnsch = make(chan *model.MsgDns, myconfig.ChannelSize)   // to outputer
+	runok := true                                                    // Exit when run is not ok
+	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)          // input channel
+	var httpch = make(chan *model.FlowHttp, myconfig.ChannelSize)    // to post worker
+	var outhttpch = make(chan *model.FlowHttp, myconfig.ChannelSize) // to outputer
+	var outdnsch = make(chan *model.FlowDns, myconfig.ChannelSize)   // to outputer
 	var stats = matcher.NewMyStatistic(START_TIME)
 
 	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer

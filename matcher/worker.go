@@ -16,9 +16,9 @@ import (
 type Worker struct {
 	Name            string               `json:"name"`
 	Flowch          chan *nats.Msg       `json:"-"`
-	Httpch          chan *model.MsgHttp  `json:"-"`
-	Outhttpch       chan *model.MsgHttp  `json:"-"`
-	Outdnsch        chan *model.MsgDns   `json:"-"`
+	Httpch          chan *model.FlowHttp `json:"-"`
+	Outhttpch       chan *model.FlowHttp `json:"-"`
+	Outdnsch        chan *model.FlowDns  `json:"-"`
 	ValueRegs       []*engine.ValueRegex `json:"-"`
 	ColDicts        []*engine.ColDict    `json:"-"`
 	Appmap          *sync.Map            `json:"-"`
@@ -65,27 +65,27 @@ func (p *Worker) Run() {
 		// 处理消息
 		switch m.Subject {
 		case "flow.http":
-			msgHttp := &model.MsgHttp{}
-			if err = json.Unmarshal(m.Data, msgHttp); err != nil {
+			flowHttp := &model.FlowHttp{}
+			if err = json.Unmarshal(m.Data, flowHttp); err != nil {
 				log.Errorf("worker unmarshal http msg failed %s", err)
 				continue
 			}
 
 			// 匹配敏感规则，如果匹配到，则输出已匹配
-			if matched := p.processMsgHttp(msgHttp); matched {
-				p.Outhttpch <- msgHttp
+			if matched := p.processFlowHttp(flowHttp); matched {
+				p.Outhttpch <- flowHttp
 			}
 
-			p.Httpch <- msgHttp // 进行后续处理，TODO 可能后续流程会有变化
+			p.Httpch <- flowHttp // 进行后续处理，TODO 可能后续流程会有变化
 
 		case "flow.dns":
-			msgDns := &model.MsgDns{}
-			if err = json.Unmarshal(m.Data, msgDns); err != nil {
+			flowDns := &model.FlowDns{}
+			if err = json.Unmarshal(m.Data, flowDns); err != nil {
 				log.Errorf("worker unmarshal dns msg failed %s", err)
 				continue
 			}
-			if err = p.processMsgDns(msgDns); err == nil {
-				p.Outdnsch <- msgDns
+			if err = p.processFlowDns(flowDns); err == nil {
+				p.Outdnsch <- flowDns
 			}
 
 		default:
