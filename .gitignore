@@ -3,3 +3,8 @@ go.sum
 *.exe
 log/
 etc/*.yaml
+
+data-matcher
+kafka2nats
+target/
+
