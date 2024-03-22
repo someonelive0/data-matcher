@@ -4,6 +4,8 @@
 
 来自 Kafka 的消息样本，这些消息有流转探针turboflow产生，写入kafka
 
+产生Schema可以在线：https://transform.tools/json-to-json-schema
+
 ## 1. Message of HTTP sample
 
 ```
