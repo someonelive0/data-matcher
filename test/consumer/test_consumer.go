@@ -1,4 +1,4 @@
-package test
+package main
 
 import (
 	"context"
@@ -19,7 +19,7 @@ var password = flag.String("password", "", "")
 
 // 从单个主题-分区（topic-partition）消费消息这种典型场景
 // go test .\test\consumer_test.go -v -run TestConsumer -args -topic my-topic -address 127.0.0.1:9092 -user user -password pass
-func TestConsumer(t *testing.T) {
+func main() {
 	flag.Parse()
 	log.Println("topic: ", *topic)
 	log.Println("address: ", *address)

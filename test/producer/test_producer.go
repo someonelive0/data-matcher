@@ -1,10 +1,9 @@
-package test
+package main
 
 import (
 	"context"
 	"flag"
 	"log"
-	"testing"
 
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
@@ -12,7 +11,7 @@ import (
 
 // 向kafka topic异步写多条消息
 // go test .\test\consumer_test.go -v -run TestProducerAsync -args -topic my-topic -address 127.0.0.1:9092 -user user -password pass
-func TestProducerAsync(t *testing.T) {
+func main() { // TestProducerAsync(t *testing.T) {
 	var topic = flag.String("topic", "my-topic", "kafka topic")
 	var address = flag.String("address", "127.0.0.1:9092", "")
 	var user = flag.String("user", "", "")

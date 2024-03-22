@@ -11,16 +11,20 @@ UPX=upx
 PRGS=data-matcher kafka2nats
 
 
-all:	$(PRGS)
+all:    $(PRGS)
 
 data-matcher:
-	$(GO) build $(PARAMS) -o $@ ./bin/data-matcher
+        $(GO) build $(PARAMS) -o $@ ./bin/data-matcher
 
 kafka2nats:
-	$(GO) build $(PARAMS) -o $@ ./bin/kafka2nats
+        $(GO) build $(PARAMS) -o $@ ./bin/kafka2nats
 
 clean:
-	rm -f $(PRGS)
+        rm -f $(PRGS)
+
+.PHONY: ./test
+test:
+        $(GO) test ./engine ./matcher ./model ./test
 
 .PHONY: ./test
 test:
