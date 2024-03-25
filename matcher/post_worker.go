@@ -208,10 +208,12 @@ func (p *PostWorker) discoverApp(flowHttp *model.FlowHttp) error {
 		p.AppMap.Store(app, 1)
 		p.CountApp++
 
-		// 记录本地Map同时写入nats keyvalue store
-		if _, err := p.appkvb.Put(app, []byte{}); err != nil {
-			// p.CountDnsFailed++
-			log.Errorf("post_worker set app kv [%s] failed: %s", app, err)
+		if false {
+			// 记录本地Map同时写入nats keyvalue store
+			if _, err := p.appkvb.Put(app, []byte{}); err != nil {
+				// p.CountDnsFailed++
+				log.Errorf("post_worker set app kv [%s] failed: %s", app, err)
+			}
 		}
 	}
 
@@ -265,10 +267,12 @@ func (p *PostWorker) discoverIp(flowHttp *model.FlowHttp) error {
 		p.IpMap.Store(flowHttp.Src_ip, 1)
 		p.CountIp++
 
-		// 记录本地Map同时写入nats keyvalue store
-		if _, err := p.ipkvb.Put(flowHttp.Src_ip, []byte{}); err != nil {
-			// p.CountDnsFailed++
-			log.Errorf("post_worker set ip kv [%s] failed: %s", flowHttp.Src_ip, err)
+		if false {
+			// 记录本地Map同时写入nats keyvalue store
+			if _, err := p.ipkvb.Put(flowHttp.Src_ip, []byte{}); err != nil {
+				// p.CountDnsFailed++
+				log.Errorf("post_worker set ip kv [%s] failed: %s", flowHttp.Src_ip, err)
+			}
 		}
 	}
 

@@ -91,7 +91,7 @@ func (p *Worker) Run() {
 		default:
 		}
 
-		if p.CountMsg%1000 == 0 {
+		if p.CountMsg%10000 == 0 {
 			log.Debugf("worker [%s] msgs: %d, value regex matched %d, column dict matched %d",
 				p.Name, p.CountMsg, p.CountMatchRegex, p.CountMatchDict)
 		}

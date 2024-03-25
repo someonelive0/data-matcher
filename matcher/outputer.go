@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/nats-io/nats.go"
 	log "github.com/sirupsen/logrus"
@@ -38,7 +39,8 @@ func (p *Outputer) init() error {
 			return err
 		}
 		js, err := nc.JetStream( // 创建JetStream上下文
-			nats.PublishAsyncMaxPending(256),
+			nats.PublishAsyncMaxPending(25600), // 增加异步写等待数可以防止 too many async write 错误
+			nats.MaxWait(10*time.Second),
 			nats.PublishAsyncErrHandler(func(_ nats.JetStream, _ *nats.Msg, err error) { // 异步发布消息错误
 				// TODO, 应该保存发布失败的消息，好下次发送
 				log.Errorf("nats jetstream ErrorHandler error: %v", err)
@@ -66,12 +68,8 @@ func (p *Outputer) init() error {
 			return err
 		}
 		jskv, err := nckv.JetStream( // 为KV创建JetStream上下文
-			nats.PublishAsyncMaxPending(256),
-			nats.PublishAsyncErrHandler(func(_ nats.JetStream, _ *nats.Msg, err error) { // 异步发布消息错误
-				// TODO, 应该保存发布失败的消息，好下次发送
-				log.Errorf("nats jetstream kv ErrorHandler error: %v", err)
-				p.CountFailed++
-			}),
+			nats.PublishAsyncMaxPending(25600),
+			nats.MaxWait(10*time.Second),
 		)
 		if err != nil {
 			log.Errorf("ouputer new jetstream kv %s failed: %s", servers, err)
@@ -152,17 +150,19 @@ func (p *Outputer) OutputHttp() (err error) {
 func (p *Outputer) OutputDns() error {
 	for flowDns := range p.Outdnsch {
 		p.CountDnsMsg++
-		go func(flowDns *model.FlowDns) { // 写dns到nats keyvalue store 太慢，所以用异步写
-			if _, err := p.kvb.Get(flowDns.Dns.Rrname); err != nil { // 如果key不存在才Put
-				b, _ := json.Marshal(flowDns.Dns)
-				if _, err = p.kvb.Put(flowDns.Dns.Rrname, b); err != nil {
-					p.CountDnsFailed++
-					log.Errorf("ouputer set kv [%s] failed: %s", flowDns.Dns.Rrname, err)
-				} else {
-					p.Stats.OutputDnsCount(1)
+		if false {
+			go func(flowDns *model.FlowDns) { // 写dns到nats keyvalue store 太慢，所以用异步写
+				if _, err := p.kvb.Get(flowDns.Dns.Rrname); err != nil { // 如果key不存在才Put
+					b, _ := json.Marshal(flowDns.Dns)
+					if _, err = p.kvb.Create(flowDns.Dns.Rrname, b); err != nil {
+						p.CountDnsFailed++
+						log.Errorf("ouputer set kv [%s] failed: %s", flowDns.Dns.Rrname, err)
+					} else {
+						p.Stats.OutputDnsCount(1)
+					}
 				}
-			}
-		}(flowDns)
+			}(flowDns)
+		}
 	}
 
 	return nil
