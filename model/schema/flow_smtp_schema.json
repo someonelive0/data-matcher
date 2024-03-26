@@ -1,0 +1,134 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Generated schema for Root",
+    "type": "object",
+    "properties": {
+      "timestamp": {
+        "type": "string"
+      },
+      "response_time": {
+        "type": "number"
+      },
+      "flow_id": {
+        "type": "number"
+      },
+      "event_type": {
+        "type": "string"
+      },
+      "pcap_filename": {
+        "type": "string"
+      },
+      "src_mac": {
+        "type": "string"
+      },
+      "src_ip": {
+        "type": "string"
+      },
+      "src_port": {
+        "type": "number"
+      },
+      "dst_mac": {
+        "type": "string"
+      },
+      "dest_ip": {
+        "type": "string"
+      },
+      "dest_port": {
+        "type": "number"
+      },
+      "proto": {
+        "type": "string"
+      },
+      "tx_id": {
+        "type": "number"
+      },
+      "smtp": {
+        "type": "object",
+        "properties": {
+          "helo": {
+            "type": "string"
+          },
+          "mail_from": {
+            "type": "string"
+          },
+          "From": {
+            "type": "string"
+          },
+          "rcpt_to": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "To": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string"
+          },
+          "cc": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Date": {
+            "type": "string"
+          },
+          "email_body": {
+            "type": "string"
+          },
+          "totalLen": {
+            "type": "number"
+          },
+          "x_mailer": {
+            "type": "string"
+          },
+          "subject_md5": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "helo",
+          "mail_from",
+          "From",
+          "rcpt_to",
+          "To",
+          "status",
+          "cc",
+          "Subject",
+          "Date",
+          "email_body",
+          "totalLen",
+          "x_mailer",
+          "subject_md5"
+        ]
+      },
+      "host": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "timestamp",
+      "response_time",
+      "flow_id",
+      "event_type",
+      "pcap_filename",
+      "src_mac",
+      "src_ip",
+      "src_port",
+      "dst_mac",
+      "dest_ip",
+      "dest_port",
+      "proto",
+      "tx_id",
+      "smtp",
+      "host"
+    ]
+  }

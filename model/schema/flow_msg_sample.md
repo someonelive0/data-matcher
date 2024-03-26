@@ -16,15 +16,15 @@
     "event_type": "http",
     "pcap_filename": "",
     "src_mac": "e8:65:49:4b:46:55",
-    "src_ip": "10.10.20.113",
+    "src_ip": "10.0.0.1",
     "src_port": 58436,
     "dst_mac": "00:27:0d:ff:5b:e1",
-    "dest_ip": "101.231.211.176",
+    "dest_ip": "11.1.1.1",
     "dest_port": 80,
     "proto": "TCP",
     "tx_id": 98,
     "http": {
-        "hostname": "101.231.211.176",
+        "hostname": "11.1.1.1",
         "url": "/login.jsp",
         "http_user_agent": "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0)",
         "http_content_type": "text/html",
@@ -35,7 +35,7 @@
         "request_headers": [
             {
                 "name": "Host",
-                "value": "101.231.211.176"
+                "value": "11.1.1.1"
             },
             {
                 "name": "Accept-Charset",
@@ -108,7 +108,7 @@
                 "value": "zh-CN"
             }
         ],
-        "reqHeaders": "Host: 101.231.211.176\r\nAccept-Charset: iso-8859-1,utf-8;q=0.9,*;q=0.1\r\nAccept-Language: en\r\nContent-Type: application/x-www-form-urlencoded\r\nConnection: Keep-Alive\r\nCookie: JSESSIONID=0000pcLbdFsfiqBR8tOSi927STB:155keeikh\r\nContent-Length: 50\r\nUser-Agent: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0)\r\nPragma: no-cache\r\nAccept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, image/png, */*\r\n\r\n",
+        "reqHeaders": "Host: 11.1.1.1\r\nAccept-Charset: iso-8859-1,utf-8;q=0.9,*;q=0.1\r\nAccept-Language: en\r\nContent-Type: application/x-www-form-urlencoded\r\nConnection: Keep-Alive\r\nCookie: JSESSIONID=0000pcLbdFsfiqBR8tOSi927STB:155keeikh\r\nContent-Length: 50\r\nUser-Agent: Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0)\r\nPragma: no-cache\r\nAccept: image/gif, image/x-xbitmap, image/jpeg, image/pjpeg, image/png, */*\r\n\r\n",
         "reqBody": "code=&password=&userId=../../../../../../../../etc",
         "reqLen": 50,
         "respHeaders": "Date: Fri, 18 Oct 2019 09:26:42 GMT\r\nServer: IBM_HTTP_Server\r\nX-UA-Compatible: IE=edge\r\nContent-Length: 11293\r\nKeep-Alive: timeout=10, max=2\r\nConnection: Keep-Alive\r\nContent-Type: text/html;charset=UTF-8\r\nContent-Language: zh-CN\r\n\r\n",
@@ -116,7 +116,7 @@
         "respLen": 11293,
         "totalLen": 11992
     },
-    "host": "172.16.0.230"
+    "host": "172.0.0.1"
 }
 ```
 
@@ -131,7 +131,7 @@
     "event_type": "dns",
     "pcap_filename": "",
     "src_mac": "00:0c:29:0c:f4:d3",
-    "src_ip": "192.168.43.132",
+    "src_ip": "192.168.0.1",
     "src_port": 51436,
     "dst_mac": "00:50:56:f9:ad:98",
     "dest_ip": "114.114.114.114",
@@ -176,7 +176,7 @@
             ]
         }
     },
-    "host": "172.16.0.230"
+    "host": "172.0.0.1"
 }
 ```
 
@@ -191,10 +191,10 @@
     "event_type": "ssh",
     "pcap_filename": "",
     "src_mac": "08:26:ae:31:29:1c",
-    "src_ip": "172.23.100.123",
+    "src_ip": "172.0.0.1",
     "src_port": 59112,
     "dst_mac": "9c:06:1b:e1:4b:4c",
-    "dest_ip": "172.23.12.129",
+    "dest_ip": "172.1.1.1",
     "dest_port": 22,
     "proto": "TCP",
     "ssh": {
@@ -207,7 +207,7 @@
             "software_version": "OpenSSH_8.0"
         }
     },
-    "host": "172.16.0.230"
+    "host": "172.1.1.1"
 }
 ```
 
@@ -222,10 +222,10 @@
     "event_type": "rdp",
     "pcap_filename": "",
     "src_mac": "e8:65:49:4b:46:55",
-    "src_ip": "47.98.56.29",
+    "src_ip": "11.1.1.1",
     "src_port": 3389,
     "dst_mac": "00:27:0d:ff:5b:e1",
-    "dest_ip": "10.10.20.113",
+    "dest_ip": "10.0.0.1",
     "dest_port": 60876,
     "proto": "TCP",
     "rdp": {
@@ -233,7 +233,7 @@
         "event_type": "initial_request",
         "cookie": "msrdp_cve-2019-0708.nbin"
     },
-    "host": "172.16.0.230"
+    "host": "172.0.0.1"
 }
 ```
 
@@ -247,10 +247,10 @@
     "event_type": "elasticsearch",
     "pcap_filename": "",
     "src_mac": "e8:65:49:4b:46:55",
-    "src_ip": "10.10.20.113",
+    "src_ip": "10.0.0.1",
     "src_port": 33842,
     "dst_mac": "00:27:0d:ff:5b:e1",
-    "dest_ip": "101.37.45.191",
+    "dest_ip": "11.1.1.1",
     "dest_port": 9200,
     "proto": "TCP",
     "elasticsearch": {
@@ -267,7 +267,7 @@
         "error_code": 404,
         "totalLen": 389
     },
-    "host": "172.16.0.230"
+    "host": "172.0.0.1"
 }
 ```
 
@@ -281,10 +281,10 @@
     "event_type": "pop3",
     "pcap_filename": "",
     "src_mac": "e8:65:49:4b:46:55",
-    "src_ip": "192.168.100.222",
+    "src_ip": "192.168.0.1",
     "src_port": 62026,
     "dst_mac": "00:27:0d:ff:5b:e1",
-    "dest_ip": "113.96.208.92",
+    "dest_ip": "11.1.1.1",
     "dest_port": 110,
     "proto": "TCP",
     "tx_id": 0,
@@ -320,7 +320,7 @@
         "email_body": "各位好,\r\n\r\n苏州****的到款是\r\n****万是IDSS2019JC****(****)全款\r\n****万是IDSS2018JC****(****)20%\r\n\r\n\r\n\r\n钱****          销售部门     \r\n \r\n\r\nInformation & Data Security Solutions Co.,Ltd. \r\n上海总部地址：上海市普陀区大渡河路388弄5号华宏商务中心6层\r\n北京总部地址：北京市海淀区东北旺西路8号中关村软件园8号楼一层131室\r\n手机：150********\r\n上海总部电话：(021)62090100\r\nWEB：www.idss-cn.com  \r\n \r\n发件人： guan****@idss-cn.com\r\n发送时间： 2019-10-18 15:02\r\n收件人： qian****; 庄****; 张****; 朱****\r\n主题： ****收款\r\n关于****两笔收款，因为2个项目开票****万金额一致，请****去找客户确认下，回复庄****，谢谢~~\r\n\r\n\r\n\r\n\r\n\r\n\r\n财务部            管****\r\n     \r\n上海观安信息技术股份有限公司\r\nInformation & Data Security Solutions Co.,Ltd. \r\n上海总部地址：上海市普陀区大渡河路388弄5号华宏商务中心6层\r\n北京总部地址：北京市海淀区东北旺西路8号中关村软件园8号楼一层131室\r\n手机：186********\r\n上海总部电话：(021)62090100\r\nWEB：www.idss-cn.com  \r\n",
         "totalLen": 1264
     },
-    "host": "172.16.0.230"
+    "host": "172.0.0.1"
 }
 ```
 
@@ -334,10 +334,10 @@
     "event_type": "smtp",
     "pcap_filename": "",
     "src_mac": "e8:65:49:4b:46:55",
-    "src_ip": "192.168.100.125",
+    "src_ip": "192.168.0.1",
     "src_port": 62454,
     "dst_mac": "00:27:0d:ff:5b:e1",
-    "dest_ip": "113.96.232.106",
+    "dest_ip": "11.1.1.1",
     "dest_port": 25,
     "proto": "TCP",
     "tx_id": 0,
@@ -367,6 +367,6 @@
         "x_mailer": "Microsoft Outlook 16.0",
         "subject_md5": "6f3f0d47a340d2faa3df20b12c2a912c"
     },
-    "host": "172.16.0.230"
+    "host": "172.0.0.1"
 }
 ```

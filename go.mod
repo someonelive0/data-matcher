@@ -9,6 +9,7 @@ require (
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/arl/statsviz v0.6.0
 	github.com/cloudflare/ahocorasick v0.0.0-20210425175752-730270c3e184
+	github.com/dexyk/stringosim v0.0.0-20170922105913-9d0b3e91a842
 	github.com/dop251/goja v0.0.0-20240220182346-e401ed450204
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/mux v1.8.1

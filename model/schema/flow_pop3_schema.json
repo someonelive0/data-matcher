@@ -1,0 +1,130 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Generated schema for Root",
+    "type": "object",
+    "properties": {
+      "timestamp": {
+        "type": "string"
+      },
+      "response_time": {
+        "type": "number"
+      },
+      "flow_id": {
+        "type": "number"
+      },
+      "event_type": {
+        "type": "string"
+      },
+      "pcap_filename": {
+        "type": "string"
+      },
+      "src_mac": {
+        "type": "string"
+      },
+      "src_ip": {
+        "type": "string"
+      },
+      "src_port": {
+        "type": "number"
+      },
+      "dst_mac": {
+        "type": "string"
+      },
+      "dest_ip": {
+        "type": "string"
+      },
+      "dest_port": {
+        "type": "number"
+      },
+      "proto": {
+        "type": "string"
+      },
+      "tx_id": {
+        "type": "number"
+      },
+      "pop3": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "command": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "From": {
+            "type": "string"
+          },
+          "To": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "Subject": {
+            "type": "string"
+          },
+          "Date": {
+            "type": "string"
+          },
+          "attachment": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "filename": {
+                  "type": "string"
+                },
+                "file_256": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "file_256"
+              ]
+            }
+          },
+          "email_body": {
+            "type": "string"
+          },
+          "totalLen": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "username",
+          "command",
+          "status",
+          "From",
+          "To",
+          "Subject",
+          "Date",
+          "attachment",
+          "email_body",
+          "totalLen"
+        ]
+      },
+      "host": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "timestamp",
+      "response_time",
+      "flow_id",
+      "event_type",
+      "pcap_filename",
+      "src_mac",
+      "src_ip",
+      "src_port",
+      "dst_mac",
+      "dest_ip",
+      "dest_port",
+      "proto",
+      "tx_id",
+      "pop3",
+      "host"
+    ]
+  }
