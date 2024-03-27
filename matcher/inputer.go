@@ -26,10 +26,14 @@ type Inputer struct {
 // 采用nats的subject通配符，可以在一个inputer中输入多个flow主题，即 subject: flow.*
 func (p *Inputer) Run() error {
 	natsErrHandler := func(nc *nats.Conn, sub *nats.Subscription, natsErr error) {
-		log.Errorf("nats ErrorHandler error: %v", natsErr)
-		if natsErr == nats.ErrSlowConsumer { // 当出现满消费者错误，即当前进程处理不了nats的消息，就计入统计，为以后扩展缓存和节点提供依据
+		if natsErr == nats.ErrSlowConsumer { // 当出现慢消费者错误，即当前进程处理不了nats的消息，就计入统计，为以后扩展缓存和节点提供依据
 			p.CountSlow++
 			p.Stats.InputSlowCount(1)
+			if p.CountSlow == 1 { // 只打印第一次慢消费者错误，避免错误日志过多
+				log.Errorf("nats ErrorHandler error: %v", natsErr)
+			}
+		} else {
+			log.Errorf("nats ErrorHandler error: %v", natsErr)
 		}
 	}
 

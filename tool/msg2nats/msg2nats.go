@@ -157,8 +157,8 @@ func sendFileMsg(nc *nats.Conn) (int, error) {
 		}
 	}
 	t1 := time.Since(t0)
-	log.Printf("end send msgs count %d with loop %d, spent %f seconds, speed %d tps, limit count %d",
-		count, *arg_num, t1.Seconds(), count/int(t1.Seconds()), limit_count)
+	log.Printf("end send msgs count %d, spent %f seconds, speed %d tps, limit count %d",
+		count, t1.Seconds(), count/int(t1.Seconds()), limit_count)
 
 	return count, nil
 }
