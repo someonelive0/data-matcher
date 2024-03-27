@@ -22,7 +22,25 @@ import (
 //
 // user: nats user
 // user: nats password of user
-func NatsConnect(servers, user, password string) (*nats.Conn, error) {
+func NatsConnect(servers, user, password string,
+	natsErrHandler func(*nats.Conn, *nats.Subscription, error)) (*nats.Conn, error) {
+	// 允许外部传入Nats错误处理回调函数，如果回调函数是nil，则使用默认的闭包处理
+	defaultNatsErrHandler := func(nc *nats.Conn, sub *nats.Subscription, natsErr error) {
+		log.Errorf("nats ErrorHandler error: %v", natsErr)
+		// if err == nats.ErrSlowConsumer { // logSlowConsumer
+		// pendingMsgs, _, err := sub.Pending()
+		// if err != nil {
+		// 	fmt.Printf("couldn't get pending messages: %v", err)
+		// 	return
+		// }
+		// fmt.Printf("Falling behind with %d pending messages on subject %q.\n",
+		// 	pendingMsgs, sub.Subject)
+		// // Log error, notify operations...
+		// }
+	}
+	if natsErrHandler == nil {
+		natsErrHandler = defaultNatsErrHandler
+	}
 
 	nc, err := nats.Connect(
 		servers,
@@ -52,19 +70,7 @@ func NatsConnect(servers, user, password string) (*nats.Conn, error) {
 			log.Infof("nats Known servers: %v\n", nc.Servers())
 			log.Infof("nats Discovered servers: %v\n", nc.DiscoveredServers())
 		}),
-		nats.ErrorHandler(func(_ *nats.Conn, _ *nats.Subscription, err error) {
-			log.Errorf("nats ErrorHandler error: %v", err)
-			// if err == nats.ErrSlowConsumer { // logSlowConsumer
-			// pendingMsgs, _, err := sub.Pending()
-			// if err != nil {
-			// 	fmt.Printf("couldn't get pending messages: %v", err)
-			// 	return
-			// }
-			// fmt.Printf("Falling behind with %d pending messages on subject %q.\n",
-			// 	pendingMsgs, sub.Subject)
-			// // Log error, notify operations...
-			// }
-		}),
+		nats.ErrorHandler(natsErrHandler),
 	)
 	if err != nil {
 		// log.Errorf("NatsConnect failed: %s", err)

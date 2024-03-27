@@ -16,6 +16,7 @@ type Inputer struct {
 	Flow       *Flow          `json:"-"`
 	Stats      *MyStatistic   `json:"-"`
 	CountMsg   uint64         `json:"count_msg"`
+	CountSlow  uint64         `json:"count_slow"`
 
 	nc  *nats.Conn
 	sub *nats.Subscription
@@ -24,8 +25,16 @@ type Inputer struct {
 // async to receive messages from a flow
 // 采用nats的subject通配符，可以在一个inputer中输入多个flow主题，即 subject: flow.*
 func (p *Inputer) Run() error {
+	natsErrHandler := func(nc *nats.Conn, sub *nats.Subscription, natsErr error) {
+		log.Errorf("nats ErrorHandler error: %v", natsErr)
+		if natsErr == nats.ErrSlowConsumer { // 当出现满消费者错误，即当前进程处理不了nats的消息，就计入统计，为以后扩展缓存和节点提供依据
+			p.CountSlow++
+			p.Stats.InputSlowCount(1)
+		}
+	}
+
 	servers := strings.Join(p.NatsConfig.Servers, ",")
-	nc, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password)
+	nc, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password, natsErrHandler)
 	if err != nil {
 		log.Errorf("inputer NatsConnect %s failed: %s", servers, err)
 		return err

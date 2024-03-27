@@ -33,7 +33,7 @@ func (p *Outputer) init() error {
 	servers := strings.Join(p.NatsConfig.Servers, ",")
 
 	{ // 写http到jetstream
-		nc, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password)
+		nc, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password, nil)
 		if err != nil {
 			log.Errorf("ouputer NatsConnect %s failed: %s", servers, err)
 			return err
@@ -62,7 +62,7 @@ func (p *Outputer) init() error {
 
 	{ // 写dns到key value store
 
-		nckv, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password)
+		nckv, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password, nil)
 		if err != nil {
 			log.Errorf("ouputer NatsConnect kv %s failed: %s", servers, err)
 			return err

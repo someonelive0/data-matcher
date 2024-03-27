@@ -147,7 +147,7 @@ func input(ctx context.Context, ch chan []byte, kafkaConfig *KafkaConfig, topic 
 
 // 从channel读入数据，写入nats
 func output(ch chan []byte, natsConfig *NatsConfig, subject string) error {
-	nc, err := utils.NatsConnect(strings.Join(natsConfig.Servers, ","), natsConfig.User, natsConfig.Password)
+	nc, err := utils.NatsConnect(strings.Join(natsConfig.Servers, ","), natsConfig.User, natsConfig.Password, nil)
 	if err != nil {
 		log.Errorf("connect nats %v with user [%s] failed: %s", natsConfig.Servers, natsConfig.User, err)
 		return err

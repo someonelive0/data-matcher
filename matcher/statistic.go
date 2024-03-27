@@ -13,6 +13,7 @@ type MyStatistic struct {
 	Lastinputtime  time.Time `json:"last_input_time"`
 	Lastoutputtime time.Time `json:"last_output_time"`
 	CountInput     uint64    `json:"count_input"`
+	CountSlowInput uint64    `json:"count_slow_input"`
 	CountOutHttp   uint64    `json:"count_output_http"`
 	CountOutDns    uint64    `json:"count_output_dns"`
 	// Matchedpolicy  MatchedPolicy     `json:"matchd_policy"`
@@ -48,6 +49,10 @@ func (p *MyStatistic) InputCount(n uint64) {
 		i.Count++
 	}
 	p.mutex.Unlock()
+}
+
+func (p *MyStatistic) InputSlowCount(n uint64) {
+	atomic.AddUint64(&p.CountSlowInput, n)
 }
 
 // mutex is not used

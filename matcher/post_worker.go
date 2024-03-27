@@ -34,7 +34,7 @@ func (p *PostWorker) init() error {
 	servers := strings.Join(p.NatsConfig.Servers, ",")
 
 	// 写app,api,ip到key value store
-	nckv, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password)
+	nckv, err := utils.NatsConnect(servers, p.NatsConfig.User, p.NatsConfig.Password, nil)
 	if err != nil {
 		log.Errorf("post_worker NatsConnect kv %s failed: %s", servers, err)
 		return err
