@@ -94,18 +94,24 @@ func sendFileMsg(nc *nats.Conn) (int, error) {
 	}
 	defer fp.Close()
 
-	count := 0
+	line_count := 0
 	m := make(map[string]interface{})
-	msgs := make([]*line_msg, 0)
+	msgs := make([]*line_msg, 0, 500000)
 	submap := make(map[string]int)
 
 	// 读入消息到内存队列
+	// fmt.Printf("read lines: ")
 	fp.Seek(0, 0)
 	scanner := bufio.NewScanner(fp)
 	buf := make([]byte, 0, 64*1024)
 	scanner.Buffer(buf, 1024*1024)
 	for scanner.Scan() {
 		line := scanner.Bytes()
+		line_count++
+		// if line_count%10000 == 0 {
+		// 	fmt.Printf(" %d", line_count)
+		// }
+
 		err := json.Unmarshal(line, &m)
 		if err != nil {
 			fmt.Printf("Umarshal failed: %s\n%s\n", err, line)
@@ -114,8 +120,10 @@ func sendFileMsg(nc *nats.Conn) (int, error) {
 		if event_type, ok := m["event_type"]; ok {
 			// log.Printf("event_type: %s\n", event_type)
 			subject := *arg_subject + "." + event_type.(string) // subject is like flow.http
-			msg := &line_msg{subject: subject}
-			msg.data = make([]byte, len(line))
+			msg := &line_msg{
+				subject: subject,
+				data:    make([]byte, len(line)),
+			}
 			copy(msg.data, line)
 			// log.Printf("msg: %s, %s", msg.subject, msg.data)
 			msgs = append(msgs, msg)
@@ -124,10 +132,10 @@ func sendFileMsg(nc *nats.Conn) (int, error) {
 		}
 	}
 
-	log.Printf("subjects: %#v", submap)
+	log.Printf("lines: %d, subjects: %#v", line_count, submap)
 	if scanner.Err() != nil {
 		log.Println("file scanner failed: ", scanner.Err())
-		return count, scanner.Err()
+		return line_count, scanner.Err()
 	}
 	fp.Close()
 
@@ -138,6 +146,7 @@ func sendFileMsg(nc *nats.Conn) (int, error) {
 	}
 	log.Printf("begin send msgs %d with loop %d, and limit rate %d tps", len(msgs), *arg_num, *arg_limit)
 	t0 := time.Now()
+	count := 0
 	for i := 0; i < *arg_num; i++ {
 		l := len(msgs)
 		for j := 0; j < l; {
