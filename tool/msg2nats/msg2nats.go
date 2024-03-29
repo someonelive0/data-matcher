@@ -147,8 +147,8 @@ func sendFileMsg(nc *nats.Conn) (int, error) {
 	log.Printf("begin send msgs %d with loop %d, and limit rate %d tps", len(msgs), *arg_num, *arg_limit)
 	t0 := time.Now()
 	count := 0
+	l := len(msgs)
 	for i := 0; i < *arg_num; i++ {
-		l := len(msgs)
 		for j := 0; j < l; {
 			if limiter != nil && !limiter.Allow() {
 				// fmt.Printf("限流，请求拒绝 %d, %d\n", i, j)
