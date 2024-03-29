@@ -19,8 +19,8 @@ func (p *ManageApi) dumpHandler(w http.ResponseWriter, r *http.Request) {
 	s += fmt.Sprintf(`, "process_mem": %s`, utils.ProcessMem())
 	s += fmt.Sprintf(`, "channel": {"flow_channel": {"len": %d, "cap": %d}`, len(p.Flowch), cap(p.Flowch))
 	s += fmt.Sprintf(`, "http_channel": {"len": %d, "cap": %d}`, len(p.Httpch), cap(p.Httpch))
-	s += fmt.Sprintf(`, "output_http_channel": {"len": %d, "cap": %d}`, len(p.Outhttpch), cap(p.Outhttpch))
-	s += fmt.Sprintf(`, "output_dns_channel": {"len": %d, "cap": %d} }`, len(p.Outdnsch), cap(p.Outdnsch))
+	s += fmt.Sprintf(`, "label_http_channel": {"len": %d, "cap": %d}`, len(p.LabelHttpch), cap(p.LabelHttpch))
+	s += fmt.Sprintf(`, "label_dns_channel": {"len": %d, "cap": %d} }`, len(p.LabelDnsch), cap(p.LabelDnsch))
 	s += fmt.Sprintf(`, "inputer": %s`, p.Inputer.Dump())
 	s += fmt.Sprintf(`, "outputer": %s`, p.Outputer.Dump())
 	s += fmt.Sprintf(`, "post_worker": %s`, p.PostWorker.Dump())
@@ -215,14 +215,14 @@ func (p *ManageApi) DiscoverAppHandler(w http.ResponseWriter, r *http.Request) {
 	i := 0
 	fmt.Fprint(w, "[")
 	p.PostWorker.AppMap.Range(func(key, value interface{}) bool {
-		app := key.(string)
+		app, _ := json.Marshal(key.(string)) // 已经json编码后自带双引号
 		num := value.(int)
 		if i == 0 {
 			fmt.Fprint(w, "\n")
 		} else {
 			fmt.Fprint(w, ",\n")
 		}
-		fmt.Fprintf(w, `{"app": "%s", "num": %d}`, app, num)
+		fmt.Fprintf(w, `{"app": %s, "num": %d}`, app, num)
 
 		i++
 		return true
@@ -236,14 +236,14 @@ func (p *ManageApi) DiscoverApiHandler(w http.ResponseWriter, r *http.Request) {
 	i := 0
 	fmt.Fprint(w, "[")
 	p.PostWorker.ApiMap.Range(func(key, value interface{}) bool {
-		api := key.(string)
+		api, _ := json.Marshal(key.(string)) // 已经json编码后自带双引号
 		num := value.(int)
 		if i == 0 {
 			fmt.Fprint(w, "\n")
 		} else {
 			fmt.Fprint(w, ",\n")
 		}
-		fmt.Fprintf(w, `{"api": "%s", "num": %d}`, api, num)
+		fmt.Fprintf(w, `{"api": %s, "num": %d}`, api, num)
 
 		i++
 		return true
@@ -257,14 +257,14 @@ func (p *ManageApi) DiscoverIpHandler(w http.ResponseWriter, r *http.Request) {
 	i := 0
 	fmt.Fprint(w, "[")
 	p.PostWorker.IpMap.Range(func(key, value interface{}) bool {
-		api := key.(string)
+		ip, _ := json.Marshal(key.(string)) // 已经json编码后自带双引号
 		num := value.(int)
 		if i == 0 {
 			fmt.Fprint(w, "\n")
 		} else {
 			fmt.Fprint(w, ",\n")
 		}
-		fmt.Fprintf(w, `{"api": "%s", "num": %d}`, api, num)
+		fmt.Fprintf(w, `{"ip": %s, "num": %d}`, ip, num)
 
 		i++
 		return true

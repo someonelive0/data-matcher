@@ -23,20 +23,20 @@ type ManageApi struct {
 	utils.RestapiHandler
 
 	// Host       string
-	Port       int
-	Config     *MyConfig
-	Stats      *MyStatistic
-	Flowch     chan *nats.Msg
-	Httpch     chan *model.FlowHttp
-	Outhttpch  chan *model.FlowHttp
-	Outdnsch   chan *model.FlowDns
-	Inputer    *Inputer
-	Outputer   *Outputer
-	Workers    []*Worker
-	PostWorker *PostWorker
-	ValueRegs  []*engine.ValueRegex
-	ColDicts   []*engine.ColDict
-	Myerrors   *utils.MyErrors
+	Port        int
+	Config      *MyConfig
+	Stats       *MyStatistic
+	Flowch      chan *nats.Msg
+	Httpch      chan *model.FlowHttp
+	LabelHttpch chan *model.FlowHttp
+	LabelDnsch  chan *model.FlowDns
+	Inputer     *Inputer
+	Outputer    *Outputer
+	Workers     []*Worker
+	PostWorker  *PostWorker
+	ValueRegs   []*engine.ValueRegex
+	ColDicts    []*engine.ColDict
+	Myerrors    *utils.MyErrors
 
 	server *http.Server
 }

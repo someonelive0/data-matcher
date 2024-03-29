@@ -64,11 +64,11 @@ func main() {
 	log.Infof("load column dicts in rules config number %d", len(dicts))
 
 	// run inputer, receive nats msg to channel
-	runok := true                                                    // Exit when run is not ok
-	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)          // input channel
-	var httpch = make(chan *model.FlowHttp, myconfig.ChannelSize)    // to post worker
-	var outhttpch = make(chan *model.FlowHttp, myconfig.ChannelSize) // to outputer
-	var outdnsch = make(chan *model.FlowDns, myconfig.ChannelSize)   // to outputer
+	runok := true                                                       // Exit when run is not ok
+	var flowch = make(chan *nats.Msg, myconfig.ChannelSize)             // input channel
+	var httpch = make(chan *model.FlowHttp, myconfig.ChannelSize)       // to post worker
+	var label_httpch = make(chan *model.FlowHttp, myconfig.ChannelSize) // to outputer
+	var label_dnsch = make(chan *model.FlowDns, myconfig.ChannelSize)   // to outputer
 	var stats = matcher.NewMyStatistic(START_TIME)
 
 	var inputer = matcher.Inputer{ // http flow inputer, 如有多个flow要输入，则建立多个inputer
@@ -84,10 +84,10 @@ func main() {
 	// run outputer
 	var wg sync.WaitGroup
 	var outputer = matcher.Outputer{
-		Outhttpch:  outhttpch,
-		Outdnsch:   outdnsch,
-		NatsConfig: &myconfig.NatsConfig,
-		Stats:      stats,
+		LabelHttpch: label_httpch,
+		LabelDnsch:  label_dnsch,
+		NatsConfig:  &myconfig.NatsConfig,
+		Stats:       stats,
 	}
 	wg.Add(1)
 	go func() {
@@ -105,16 +105,16 @@ func main() {
 	var workers []*matcher.Worker = make([]*matcher.Worker, 0)
 	for i := 0; i < myconfig.Workers; i++ {
 		worker := &matcher.Worker{
-			Name:      strconv.Itoa(i),
-			Flowch:    flowch,
-			Httpch:    httpch,
-			Outhttpch: outhttpch,
-			Outdnsch:  outdnsch,
-			ValueRegs: regs,
-			ColDicts:  dicts,
-			Appmap:    &appmap,
-			Apimap:    &apimap,
-			Ipmap:     &ipmap,
+			Name:        strconv.Itoa(i),
+			Flowch:      flowch,
+			Httpch:      httpch,
+			LabelHttpch: label_httpch,
+			LabelDnsch:  label_dnsch,
+			ValueRegs:   regs,
+			ColDicts:    dicts,
+			Appmap:      &appmap,
+			Apimap:      &apimap,
+			Ipmap:       &ipmap,
 		}
 		if err = worker.Init(); err != nil {
 			log.Errorf("worker init failed %s", err)
@@ -152,8 +152,8 @@ func main() {
 		Stats:          stats,
 		Flowch:         flowch,
 		Httpch:         httpch,
-		Outhttpch:      outhttpch,
-		Outdnsch:       outdnsch,
+		LabelHttpch:    label_httpch,
+		LabelDnsch:     label_dnsch,
 		Inputer:        &inputer,
 		Outputer:       &outputer,
 		Workers:        workers,
@@ -186,8 +186,8 @@ func main() {
 		close(flowch)
 		wgWokers.Wait()
 		close(httpch)
-		close(outhttpch)
-		close(outdnsch)
+		close(label_httpch)
+		close(label_dnsch)
 		post_worker.Stop()
 		outputer.Stop()
 		// waitChanEmpty(chan_stlog_0, chan_stlog_1)

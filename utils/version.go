@@ -7,7 +7,7 @@ import (
 // Global version infomation
 
 const (
-	APP_VERSION = "3.0.0"
+	APP_VERSION = "3.0.1"
 
 	// date +%FT%T%z  // date +'%Y%m%d'
 	BUILD_TIME = "2024-03-31T00:00:00+0800"

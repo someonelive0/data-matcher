@@ -44,7 +44,7 @@ func NatsConnect(servers, user, password string,
 
 	nc, err := nats.Connect(
 		servers,
-		nats.Name("data-matcher 3.0.0"),
+		nats.Name("data-matcher "+APP_VERSION),
 		nats.UserInfo(user, password),
 		nats.Timeout(10*time.Second),
 		nats.PingInterval(20*time.Second),

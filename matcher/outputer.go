@@ -13,8 +13,8 @@ import (
 )
 
 type Outputer struct {
-	Outhttpch      chan *model.FlowHttp `json:"-"`
-	Outdnsch       chan *model.FlowDns  `json:"-"`
+	LabelHttpch    chan *model.FlowHttp `json:"-"`
+	LabelDnsch     chan *model.FlowDns  `json:"-"`
 	NatsConfig     *NatsConfig          `json:"-"`
 	Stats          *MyStatistic         `json:"-"`
 	CountMsg       uint64               `json:"count_msg"`
@@ -125,7 +125,7 @@ func (p *Outputer) Run() error {
 }
 
 func (p *Outputer) OutputHttp() (err error) {
-	for flowHttp := range p.Outhttpch {
+	for flowHttp := range p.LabelHttpch {
 		p.CountMsg++
 		b, _ := json.Marshal(flowHttp)
 		_, err = p.js.PublishAsync("match_flow.http", b) // 异步发布
@@ -148,7 +148,7 @@ func (p *Outputer) OutputHttp() (err error) {
 }
 
 func (p *Outputer) OutputDns() error {
-	for flowDns := range p.Outdnsch {
+	for flowDns := range p.LabelDnsch {
 		p.CountDnsMsg++
 		if false {
 			go func(flowDns *model.FlowDns) { // 写dns到nats keyvalue store 太慢，所以用异步写
