@@ -136,9 +136,9 @@ func input(ctx context.Context, ch chan []byte, kafkaConfig *KafkaConfig, topic 
 		ch <- m.Value
 
 		// 显式提交, 注释可以连续测试
-		// if err := r.CommitMessages(ctx, m); err != nil {
-		// 	log.Fatal("failed to commit messages:", err)
-		// }
+		if err := r.CommitMessages(ctx, m); err != nil {
+			log.Fatal("failed to commit messages:", err)
+		}
 	}
 	// log.Debugf("input end")
 

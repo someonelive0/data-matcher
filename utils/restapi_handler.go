@@ -49,7 +49,7 @@ func (p *RestapiHandler) DebugHandler(w http.ResponseWriter, r *http.Request) {
 
 func (p *RestapiHandler) StatusHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	s := fmt.Sprintf(`{"app": "%s", `, p.Name)
+	s := fmt.Sprintf(`{"status": "ok", "app": "%s", `, p.Name)
 	claims, ok := r.Context().Value(ContextKeyRequestID).(*MyClaims)
 	if ok && claims != nil {
 		b, _ := json.Marshal(claims)
