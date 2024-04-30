@@ -12,6 +12,7 @@ require (
 	github.com/dexyk/stringosim v0.0.0-20170922105913-9d0b3e91a842
 	github.com/dop251/goja v0.0.0-20240220182346-e401ed450204
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/google/gopacket v1.1.19
 	github.com/gorilla/mux v1.8.1
 	github.com/iohub/ahocorasick v0.0.0-20240118134817-7d0e3abf6181
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
@@ -22,6 +23,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/wasilibs/go-re2 v1.4.1
 	github.com/xeipuuv/gojsonschema v1.2.0
+	golang.org/x/net v0.17.0
 	golang.org/x/time v0.5.0
 	gopkg.in/yaml.v3 v3.0.1
 )

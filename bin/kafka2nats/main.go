@@ -35,7 +35,8 @@ func init() {
 	}
 	utils.ShowBannerForApp("kafka2nats", utils.APP_VERSION, utils.BUILD_TIME)
 	utils.Chdir2PrgPath()
-	fmt.Println("pwd:", utils.GetPrgDir())
+	pwd, _ := utils.GetPrgDir()
+	fmt.Println("pwd:", pwd)
 	utils.InitLog("kafka2nats.log", *arg_debug)
 	log.Infof("BEGIN... %v, config=%v, debug=%v",
 		START_TIME.Format(time.DateTime), *arg_config, *arg_debug)
