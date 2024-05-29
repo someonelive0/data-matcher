@@ -37,7 +37,10 @@ func init() {
 	utils.Chdir2PrgPath()
 	pwd, _ := utils.GetPrgDir()
 	fmt.Println("pwd:", pwd)
-	utils.InitLog("data-matcher.log", *arg_debug)
+	if err := utils.InitLog("data-matcher.log", *arg_debug); err != nil {
+		fmt.Printf("init log failed: %s\n", err)
+		os.Exit(1)
+	}
 	log.Infof("BEGIN... %v, config=%v, debug=%v",
 		START_TIME.Format(time.DateTime), *arg_config, *arg_debug)
 }
