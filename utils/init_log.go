@@ -7,12 +7,10 @@ import (
 	"path"
 	"runtime"
 	"strings"
-	"time"
 
 	nested_formatter "github.com/antonfisher/nested-logrus-formatter"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
-	// logrus_syslog "github.com/sirupsen/logrus/hooks/syslog"
 )
 
 const (
@@ -33,7 +31,7 @@ func InitLog(logfile string, isdebug bool) error {
 func InitLogRotate(logfile string, isdebug bool, rotate_files, rotate_mbytes uint) error {
 	logrus.SetFormatter(&nested_formatter.Formatter{
 		HideKeys:        true,
-		TimestampFormat: time.DateTime, // "2006-01-02 15:04:05", //TimestampFormat: time.RFC3339,
+		TimestampFormat: "01-02 15:04:05", //time.DateTime, time.RFC3339,
 		// FieldsOrder:     []string{"model", "file"},
 		CallerFirst: true,
 		CustomCallerFormatter: func(f *runtime.Frame) string {
@@ -60,6 +58,7 @@ func InitLogRotate(logfile string, isdebug bool, rotate_files, rotate_mbytes uin
 		}
 	}
 
+	// set log file how to rotate
 	if rotate_files > MAX_ROTATE_LOGFILE {
 		logrus.Warnf("rotate_files %d is bigger than %d, set to %d", rotate_files, MAX_ROTATE_LOGFILE, MAX_ROTATE_LOGFILE)
 		rotate_files = MAX_ROTATE_LOGFILE
