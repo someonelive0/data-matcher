@@ -37,7 +37,7 @@ func InitLogRotate(logfile string, isdebug bool, rotate_files, rotate_mbytes uin
 		CustomCallerFormatter: func(f *runtime.Frame) string {
 			s := strings.Split(f.Function, ".")
 			funcName := s[len(s)-1]
-			return fmt.Sprintf(" [%s:%d %s()]", path.Base(f.File), f.Line, funcName)
+			return fmt.Sprintf(" [%s:%d %s]", path.Base(f.File), f.Line, funcName)
 		},
 	})
 	//logrus.SetFormatter(&logrus.TextFormatter{DisableColors: true, FullTimestamp: true})
